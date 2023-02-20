@@ -1,98 +1,176 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html"
+	"log"
 	"net/http"
+	"os"
 	"time"
+
+	//_  "github.com/cockroachdb/cockroach-go/crdb"
+	_ "github.com/lib/pq"
 )
 
-func qwerty(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "nuttyyyyy\n")
-	fmt.Printf("accessed\n")
-	fmt.Fprintf(w, "hello %q", html.EscapeString(r.URL.Path))
+type User struct {
+	Id       int32
+	Username string
+	Password string
 }
 
-func greet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World! %s", time.Now())
+type List struct {
+	Id     int32
+	Userid int32
+	List   string
+}
+
+type Note struct {
+	Id      int32
+	Userid  int32
+	Listid  int32
+	Content string
 }
 
 func main() {
-	fmt.Printf("Starting Server...\n")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4000"
+	}
+	dbuser := os.Getenv("DBUSER")
+	if dbuser == "" {
+		dbuser = "root"
+	}
+	//	dbpass := os.Getenv("DBPASS")
+	//	if dbpass == "" {
+	//		dbpass = ""
+	//	}
+	dburl := os.Getenv("DBURL")
+	if dburl == "" {
+		dburl = "0.0.0.0:26257"
+	}
+
+	// Initialize database connection
+	connStr := "postgresql://" + dbuser + "@" + dburl + "/defaultdb?sslmode=disable"
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	// check db
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Database Connected!")
+	//
+	// Statement := `
+	// CREATE TABLE IF NOT EXISTS account (id INT PRIMARY KEY, username CHAR(20), password CHAR(20)`
+	// _, err = db.Exec(sqlStatement, 30, "jon@calhoun.io", "Jonathan", "Calhoun")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// Create the "users" table.
+	// if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS account (id INT PRIMARY KEY, username CHAR(20), password CHAR(20)`); err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	//	if _, err := db.Exec(
+	//		`CREATE TABLE IF NOT EXISTS list (
+	//             Id INT PRIMARY KEY,
+	//             Userid INT REFERENCES account(Id),
+	//             List CHAR(20),
+	//             `); err != nil {
+	//		log.Fatal(err)
+	//	}
+	//
+	//	if _, err := db.Exec(
+	//		`CREATE TABLE IF NOT EXISTS note (
+	//             Id INT PRIMARY KEY,
+	//             Userid INT REFERENCES account(Id),
+	//             Listid INT REFERENCES list(Id),
+	//             Content VARCHAR(280)
+	//             `); err != nil {
+	//		log.Fatal(err)
+	//	}
+	//
+	// INSERT INTO users (age, email, first_name, last_name)
+	// VALUES ($1, $2, $3, $4)`
+	//	// Ensure admin user is in "account" table.
+	//	if _, err := db.Exec(
+	//		"INSERT INTO account (Id, Username, Password) VALUES (1, admin, admin)"); err != nil {
+	//		log.Fatal(err)
+	//	}
+
+	// resp, err := http.Get("http://google.com/")
+	// if err != nil {
+	// 	// handle error
+	// }
+	// fmt.Println(resp)
+	// defer resp.Body.Close()
+	//	body, err := io.ReadAll(resp.Body)
+	//
 	http.HandleFunc("/test", qwerty)
 	http.HandleFunc("/", greet)
-	http.ListenAndServe("0.0.0.0:8080", nil)
+	http.HandleFunc("/rad-140", jsonMayhaps)
+	http.HandleFunc("/favicon.ico", favicon)
+	fmt.Printf("Starting Server...\n")
+	http.ListenAndServe("0.0.0.0:"+port, nil)
+	fmt.Printf("Now listening on port " + port + ".")
 }
 
-// package main
-//
-// import (
-// 	"database/sql"
-// 	"fmt"
-// 	"log"
-// 	"net/http"
-// 	"os"
-//
-// 	//	"context"
-// 	// no gorilla mux
-// 	"github.com/gorilla/mux"
-// 	//	"github.com/cockroachdb/cockroach-go/crdb"
-// 	_ "github.com/lib/pq"
-// )
-//
-// func main() {
-// 	// Initialize database connection
-// 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL")+"&application_name=$ Jot")
+// func databaseTest(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+// 	var res string
+// 	var todos []string
+// 	rows, err := db.Query("SELECT * FROM todos")
+// 	defer rows.Close()
 // 	if err != nil {
-// 		log.Fatal(err)
+// 		log.Fatalln(err)
+// 		w.Write([]byte("An error occurred.\n"))
+// 		fmt.Printf("A database error occurred.")
 // 	}
-// 	defer db.Close()
-//
-// 	// Create the "users" table.
-// 	if _, err := db.Exec(
-// 		`CREATE TABLE IF NOT EXISTS account (
-//             userid INT PRIMARY KEY,
-//             username CHAR(20),
-//             password CHAR(20)
-//             `); err != nil {
-// 		log.Fatal(err)
+// 	for rows.Next() {
+// 		rows.Scan(&res)
+// 		todos = append(todos, res)
 // 	}
-//
-// 	if _, err := db.Exec(
-// 		`CREATE TABLE IF NOT EXISTS list (
-//             listid INT PRIMARY KEY,
-//             userid INT REFERENCES account(userid),
-//             list CHAR(20),
-//             `); err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	if _, err := db.Exec(
-// 		`CREATE TABLE IF NOT EXISTS note (
-//             noteid INT PRIMARY KEY,
-//             userid INT REFERENCES account(userid),
-//             listid INT REFERENCES list(listid),
-//             note VARCHAR(280)
-//             `); err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	// Ensure admin user is in "account" table.
-// 	if _, err := db.Exec(
-// 		"INSERT INTO account (userid, username, password) VALUES (1, admin, adminpass)"); err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	resp, err := http.Get("http://google.com/")
-// 	if err != nil {
-// 		// handle error
-// 	}
-// 	fmt.Println(resp)
-// 	defer resp.Body.Close()
-// 	//	body, err := io.ReadAll(resp.Body)
-// 	router := mux.NewRouter()
-//
-// 	router.HandleFunc("/login", login).Methods("GET")
-//
-// 	fmt.Println("hello world")
 // }
+
+func jsonMayhaps(w http.ResponseWriter, r *http.Request) {
+	rawData := []Note{
+		{Id: 0, Userid: 1, Listid: 1, Content: "Do your math 61 hwk."},
+		{Id: 1, Userid: 1, Listid: 1, Content: "This is another test."},
+	}
+
+	data, err := json.Marshal(rawData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write(data)
+}
+
+func favicon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	http.ServeFile(w, r, "./favicon_io/favicon.ico")
+}
+
+func qwerty(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write([]byte("This is a string.\n"))
+	w.Write([]byte(html.EscapeString(r.URL.Path)))
+	w.Write([]byte("Another test"))
+
+	fmt.Printf("accessed\n")
+}
+
+func greet(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	fmt.Fprintf(w, "Hello World! %s", time.Now())
+}
