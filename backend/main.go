@@ -56,55 +56,54 @@ func main() {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
+	} else if err = db.Ping(); err != nil {
+		log.Fatal(err)
 	}
-
 	defer db.Close()
+	fmt.Println("Database Connected!")
 
-	// check db
-	err = db.Ping()
-	if err != nil {
+	// Create the "users" table.
+	if _, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS account (
+			Id SERIAL PRIMARY KEY, 
+			username CHAR(20) NOT NULL, 
+			password CHAR(20) NOT NULL
+		)`); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Database Connected!")
-	//
-	// Statement := `
-	// CREATE TABLE IF NOT EXISTS account (id INT PRIMARY KEY, username CHAR(20), password CHAR(20)`
-	// _, err = db.Exec(sqlStatement, 30, "jon@calhoun.io", "Jonathan", "Calhoun")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// Create the "users" table.
-	// if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS account (id INT PRIMARY KEY, username CHAR(20), password CHAR(20)`); err != nil {
+	if _, err := db.Exec(
+		`CREATE TABLE IF NOT EXISTS list (
+	           Id SERIAL PRIMARY KEY,
+	           Userid INT REFERENCES account(Id) NOT NULL,
+	           name CHAR(20) NOT NULL
+	           )`); err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := db.Exec(
+		`CREATE TABLE IF NOT EXISTS note (
+	           Id INT PRIMARY KEY,
+	           Userid INT REFERENCES account(Id) NOT NULL,
+	           Listid INT REFERENCES list(Id) NOT NULL,
+	           content VARCHAR(280)
+	           )`); err != nil {
+		log.Fatal(err)
+	}
+
+	// Ensure admin user is in "account" table.
+	// if _, err := db.Exec(
+	// 	`INSERT INTO account (
+	// 		Id,
+	// 		username,
+	// 		password
+	// 	) VALUES (
+	// 		1,
+	// 		admin,
+	// 		admin
+	// 	)`); err != nil {
 	// 	log.Fatal(err)
 	// }
-	//
-	//	if _, err := db.Exec(
-	//		`CREATE TABLE IF NOT EXISTS list (
-	//             Id INT PRIMARY KEY,
-	//             Userid INT REFERENCES account(Id),
-	//             List CHAR(20),
-	//             `); err != nil {
-	//		log.Fatal(err)
-	//	}
-	//
-	//	if _, err := db.Exec(
-	//		`CREATE TABLE IF NOT EXISTS note (
-	//             Id INT PRIMARY KEY,
-	//             Userid INT REFERENCES account(Id),
-	//             Listid INT REFERENCES list(Id),
-	//             Content VARCHAR(280)
-	//             `); err != nil {
-	//		log.Fatal(err)
-	//	}
-	//
-	// INSERT INTO users (age, email, first_name, last_name)
-	// VALUES ($1, $2, $3, $4)`
-	//	// Ensure admin user is in "account" table.
-	//	if _, err := db.Exec(
-	//		"INSERT INTO account (Id, Username, Password) VALUES (1, admin, admin)"); err != nil {
-	//		log.Fatal(err)
-	//	}
 
 	// resp, err := http.Get("http://google.com/")
 	// if err != nil {
