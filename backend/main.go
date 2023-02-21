@@ -12,7 +12,57 @@ import (
 
 	//_  "github.com/cockroachdb/cockroach-go/crdb"
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4000"
+	}
+
+	db := databaseInit()
+
+	// - REST Schema: (prefix: https://\<backendurl\>/api/v0/)
+	//    - /login
+	//        - POST: should accept username and password
+	//            - returns authentication cookie/token (stored in browser by frontend)
+	//    - /lists
+	//        - GET: return all lists for user
+	//        - POST: create new list
+	//    - /lists/{list.name}
+	//        - GET: return list metadata
+	//        - PUT: update list metadata
+	//        - DELETE: delete list
+	//    - /lists/{list.name}/notes
+	//        - GET: return all notes for list
+	//        - POST: create new note
+	//    - /lists/{list.name}/notes/{noteid}
+	//        - GET: returns note data
+	//        - PUT: update note data
+	//        - DELETE: delete note
+
+	clayton := User{Username: "clayton", Password: "test123"}
+	// testnote := Note{Id: 0, Userid: 3, Listid: 0, Content: "This is a reminder to eat ur veggies."}
+	testlist := List{Id: 0, Userid: 3, Name: "Important"}
+
+	mux := http.NewServeMux()
+	mux.Handle("/login", &LoginHandler{db, clayton})
+	mux.Handle("/api/v0/user", &UserHandler{db, clayton})
+	mux.Handle("/api/v0/list", &ListHandler{db, testlist})
+	// mux.Handle("/api/v0/list/{listid}", &ListHandler{db, testlist})
+	// mux.Handle("/api/v0/list/{listid}/note/", &NoteHandler{db, testnote})
+	// mux.Handle("/api/v0/list/{listid}/note/{noteid}", &NoteHandler{db, testnote})
+
+	mux.HandleFunc("/test", qwerty)
+	mux.HandleFunc("/", greet)
+	mux.HandleFunc("/rad-140", jsonMayhaps)
+	mux.HandleFunc("/favicon.ico", favicon)
+
+	fmt.Printf("Starting Server...\n")
+	http.ListenAndServe("0.0.0.0:"+port, mux)
+	fmt.Printf("Now listening on port " + port + ".")
+}
 
 type User struct {
 	Id       int32
@@ -23,7 +73,7 @@ type User struct {
 type List struct {
 	Id     int32
 	Userid int32
-	List   string
+	Name   string
 }
 
 type Note struct {
@@ -33,110 +83,183 @@ type Note struct {
 	Content string
 }
 
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "4000"
+type LoginHandler struct {
+	db  *sql.DB
+	usr User
+}
+
+type UserHandler struct {
+	db  *sql.DB
+	usr User
+}
+
+type ListHandler struct {
+	db   *sql.DB
+	list List
+}
+
+type NoteHandler struct {
+	db   *sql.DB
+	note Note
+}
+
+func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// if POST request (all other types fail)
+	// handle post request containing username and password in plaintext
+	//
+	// if user exists, check if password is valid, else return error
+	//
+	// return jwt token derived from username (include userid?)
+}
+
+func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// accepts
+	hashed, _ := bcrypt.GenerateFromPassword([]byte(h.usr.Password), 4)
+	h.usr.Password = string(hashed)
+	if _, err := h.db.Exec(
+		`INSERT INTO users (username, password)
+		 VALUES ('` + h.usr.Username + `', '` + h.usr.Password + `');`); err != nil {
+		log.Fatal(err)
 	}
+}
+
+func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// extract userid from jwt token
+	//
+	// if GET request return all lists
+	//
+	// if POST request then,
+	// add row in notes table with corresponding userid, listid, and content
+	// if _, err := h.db.Exec(
+	// 	`INSERT INTO note (userid, listid, content)
+	// 	 VALUES (` + string(h.note.Userid) + `, ` + string(h.note.Listid) + `, '` + h.note.Content + `');`); err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// If PUT request
+	// extract noteid and note content from POST content
+	// update row in notes table corresponding to noteid
+	// If DELETE request
+	// extract noteid
+	// delete corresponding row in notes table
+}
+
+func (h *NoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// extract userid from jwt token
+	//
+	// if GET request return all notes
+	//
+	// if POST request then,
+	// extract listid and note content from POST content
+	// add row in notes table with corresponding userid, listid, and content
+	// if _, err := h.db.Exec(
+	// 	`INSERT INTO note (userid, listid, content)
+	// 	 VALUES (` + string(h.note.Userid) + `, ` + string(h.note.Listid) + `, '` + h.note.Content + `');`); err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// If PUT request
+	// extract noteid and note content from POST content
+	// update row in notes table corresponding to noteid
+	// If DELETE request
+	// extract noteid
+	// delete corresponding row in notes table
+}
+
+func databaseInit() *sql.DB {
 	dbuser := os.Getenv("DBUSER")
 	if dbuser == "" {
 		dbuser = "root"
 	}
-	//	dbpass := os.Getenv("DBPASS")
-	//	if dbpass == "" {
-	//		dbpass = ""
-	//	}
+	dbpass := os.Getenv("DBPASS")
+	if dbpass == "" {
+		dbpass = ""
+	}
 	dburl := os.Getenv("DBURL")
 	if dburl == "" {
 		dburl = "0.0.0.0:26257"
 	}
 
 	// Initialize database connection
-	connStr := "postgresql://" + dbuser + "@" + dburl + "/defaultdb?sslmode=disable"
+	var connStr string
+	if dbpass == "" {
+		connStr = "postgresql://" + dbuser + "@" + dburl + "/defaultdb?sslmode=disable"
+	} else {
+		connStr = "postgresql://" + dbuser + ":" + dbpass + "@" + dburl + "/defaultdb?sslmode=disable"
+	}
+
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
 	} else if err = db.Ping(); err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	// defer db.Close()
 	fmt.Println("Database Connected!")
 
 	// Create the "users" table.
 	if _, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS account (
-			Id SERIAL PRIMARY KEY, 
-			username CHAR(20) NOT NULL, 
-			password CHAR(20) NOT NULL
+		CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY, 
+			username STRING NOT NULL UNIQUE, 
+			password STRING NOT NULL 
 		)`); err != nil {
 		log.Fatal(err)
 	}
 
+	// Create the "list" table.
 	if _, err := db.Exec(
 		`CREATE TABLE IF NOT EXISTS list (
-	           Id SERIAL PRIMARY KEY,
-	           Userid INT REFERENCES account(Id) NOT NULL,
-	           name CHAR(20) NOT NULL
-	           )`); err != nil {
+	           id SERIAL PRIMARY KEY,
+	           userid INT NOT NULL REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+	           name STRING NOT NULL
+		   )`); err != nil {
 		log.Fatal(err)
 	}
 
+	// Create the "note" table.
 	if _, err := db.Exec(
 		`CREATE TABLE IF NOT EXISTS note (
-	           Id INT PRIMARY KEY,
-	           Userid INT REFERENCES account(Id) NOT NULL,
-	           Listid INT REFERENCES list(Id) NOT NULL,
+	           id SERIAL PRIMARY KEY,
+	           userid INT NOT NULL REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+	           listid INT NOT NULL REFERENCES list(Id) ON UPDATE CASCADE ON DELETE CASCADE,
 	           content VARCHAR(280)
 	           )`); err != nil {
 		log.Fatal(err)
 	}
 
-	// Ensure admin user is in "account" table.
-	// if _, err := db.Exec(
-	// 	`INSERT INTO account (
-	// 		Id,
-	// 		username,
-	// 		password
-	// 	) VALUES (
-	// 		1,
-	// 		admin,
-	// 		admin
-	// 	)`); err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// resp, err := http.Get("http://google.com/")
-	// if err != nil {
-	// 	// handle error
-	// }
-	// fmt.Println(resp)
-	// defer resp.Body.Close()
-	//	body, err := io.ReadAll(resp.Body)
-	//
-	http.HandleFunc("/test", qwerty)
-	http.HandleFunc("/", greet)
-	http.HandleFunc("/rad-140", jsonMayhaps)
-	http.HandleFunc("/favicon.ico", favicon)
-	fmt.Printf("Starting Server...\n")
-	http.ListenAndServe("0.0.0.0:"+port, nil)
-	fmt.Printf("Now listening on port " + port + ".")
+	// Ensure admin user is in "users" table.
+	if _, err := db.Exec(
+		`INSERT INTO users (id, username, password)
+		 VALUES (0, 'admin', 'admin');`); err != nil {
+		log.Fatal(err)
+	}
+	return db
 }
 
-// func databaseTest(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-// 	var res string
-// 	var todos []string
-// 	rows, err := db.Query("SELECT * FROM todos")
-// 	defer rows.Close()
-// 	if err != nil {
-// 		log.Fatalln(err)
-// 		w.Write([]byte("An error occurred.\n"))
-// 		fmt.Printf("A database error occurred.")
-// 	}
-// 	for rows.Next() {
-// 		rows.Scan(&res)
-// 		todos = append(todos, res)
-// 	}
-// }
+func allUsers(db *sql.DB) ([]User, error) {
+	rows, err := db.Query(`SELECT id FROM users WHERE username = ?`, "admin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	// An user slice to hold data from returned rows.
+	var users []User
+
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var usr User
+		if err := rows.Scan(&usr.Id, &usr.Username, &usr.Password); err != nil {
+			return users, err
+		}
+		users = append(users, usr)
+	}
+	if err = rows.Err(); err != nil {
+		return users, err
+	}
+	return users, nil
+}
 
 func jsonMayhaps(w http.ResponseWriter, r *http.Request) {
 	rawData := []Note{
