@@ -24,35 +24,38 @@ func main() {
 	db := databaseInit()
 
 	// - REST Schema: (prefix: https://\<backendurl\>/api/v0/)
+	mux := http.NewServeMux()
+	mux.Handle("/login", &LoginHandler{db})
 	//    - /login
 	//        - POST: should accept username and password
-	//            - returns authentication cookie/token (stored in browser by frontend)
+	//            - returns authentication cookie/token
+	mux.Handle("/api/v0/user", &UserHandler{db})
+	//    - /user
+	//        - POST: should accept username and password
+	//            - adds user to database
+	//            - returns authentication cookie/token
+	//        - DELETE: accept password in body?
+	//			  - checks password matches jwt user password in database
+	//            - deletes user from database
+	//            - revokes jwt token
+	mux.Handle("/api/v0/lists", &ListHandler{db})
 	//    - /lists
 	//        - GET: return all lists for user
 	//        - POST: create new list
+	// mux.Handle("/api/v0/list/{listid}", &ListHandler{db, testlist})
 	//    - /lists/{list.name}
 	//        - GET: return list metadata
 	//        - PUT: update list metadata
 	//        - DELETE: delete list
+	// mux.Handle("/api/v0/list/{listid}/note/", &NoteHandler{db, testnote})
 	//    - /lists/{list.name}/notes
 	//        - GET: return all notes for list
 	//        - POST: create new note
+	// mux.Handle("/api/v0/list/{listid}/note/{noteid}", &NoteHandler{db, testnote})
 	//    - /lists/{list.name}/notes/{noteid}
 	//        - GET: returns note data
 	//        - PUT: update note data
 	//        - DELETE: delete note
-
-	clayton := User{Username: "clayton", Password: "test123"}
-	// testnote := Note{Id: 0, Userid: 3, Listid: 0, Content: "This is a reminder to eat ur veggies."}
-	testlist := List{Id: 0, Userid: 3, Name: "Important"}
-
-	mux := http.NewServeMux()
-	mux.Handle("/login", &LoginHandler{db, clayton})
-	mux.Handle("/api/v0/user", &UserHandler{db, clayton})
-	mux.Handle("/api/v0/list", &ListHandler{db, testlist})
-	// mux.Handle("/api/v0/list/{listid}", &ListHandler{db, testlist})
-	// mux.Handle("/api/v0/list/{listid}/note/", &NoteHandler{db, testnote})
-	// mux.Handle("/api/v0/list/{listid}/note/{noteid}", &NoteHandler{db, testnote})
 
 	mux.HandleFunc("/test", qwerty)
 	mux.HandleFunc("/", greet)
@@ -84,86 +87,256 @@ type Note struct {
 }
 
 type LoginHandler struct {
-	db  *sql.DB
-	usr User
+	db *sql.DB
 }
 
 type UserHandler struct {
-	db  *sql.DB
-	usr User
+	db *sql.DB
 }
 
 type ListHandler struct {
-	db   *sql.DB
-	list List
+	db *sql.DB
 }
 
 type NoteHandler struct {
-	db   *sql.DB
-	note Note
+	db *sql.DB
+}
+
+func generateJWT() {
+	// maybe put this in main()?
+	// secret := os.Getenv("JWTSECRET")
+	// if secret == "" {
+	// 	secret = "12043$521p8ijz4"
+	// }
+	// generate jwt from userid, secret, and
+}
+func terminateJWT() {
+	// replace jwt with another that expires immediately
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 4)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password string, hash string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err
+}
+
+func renderJSON(w http.ResponseWriter, v interface{}) error {
+	js, err := json.Marshal(v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+	return err
+}
+
+func parseJSON(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	err := json.NewDecoder(r.Body).Decode(v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Fatal(err)
+	}
+	return err
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// if POST request (all other types fail)
-	// handle post request containing username and password in plaintext
-	//
-	// if user exists, check if password is valid, else return error
-	//
-	// return jwt token derived from username (include userid?)
+	// check auth function
+	if r.Method == http.MethodPost {
+		// handle post request containing username and password in plaintext
+		var login User
+		parseJSON(w, r, &login)
+		// TODO: query database for user with matching username and password
+		// rows, err := h.db.Query(`SELECT * FROM users WHERE username  = ?`, login.Username)
+		//
+		// TODO: respond with jwt token derived from username (include userid?)
+	} else {
+		http.Error(w, fmt.Sprintf("Expected method POST, got %v", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// accepts
-	hashed, _ := bcrypt.GenerateFromPassword([]byte(h.usr.Password), 4)
-	h.usr.Password = string(hashed)
-	if _, err := h.db.Exec(
-		`INSERT INTO users (username, password)
-		 VALUES ('` + h.usr.Username + `', '` + h.usr.Password + `');`); err != nil {
-		log.Fatal(err)
+	if r.Method == http.MethodPost {
+		// create new user object and store username and password
+		var newuser User
+		err := parseJSON(w, r, &newuser)
+		if err != nil {
+		}
+		// hash user password
+		newuser.Password, err = HashPassword(newuser.Password)
+		// insert new user object in database
+		if _, err := h.db.Exec(
+			`INSERT INTO users (username, password)
+			VALUES ('` + newuser.Username + `', '` + newuser.Password + `');`); err != nil {
+			log.Fatal(err)
+		} else {
+			http.Error(w, fmt.Sprintf("Expected method POST, got %v", r.Method), http.StatusMethodNotAllowed)
+			return
+		}
+		return
+	} else if r.Method == http.MethodDelete {
+		var newuser User
+		parseJSON(w, r, &newuser)
+		// insert new user object in database
+		if _, err := h.db.Exec(
+			`INSERT INTO users (username, password)
+			VALUES ('` + newuser.Username + `', '` + newuser.Password + `');`); err != nil {
+			log.Fatal(err)
+		} else {
+			http.Error(w, fmt.Sprintf("Expected method POST, got %v", r.Method), http.StatusMethodNotAllowed)
+			return
+		}
+		return
 	}
 }
 
 func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// extract userid from jwt token
+	// TODO: call auth func; if unauthorized redirect to login (will be done in func)
 	//
-	// if GET request return all lists
-	//
-	// if POST request then,
-	// add row in notes table with corresponding userid, listid, and content
-	// if _, err := h.db.Exec(
-	// 	`INSERT INTO note (userid, listid, content)
-	// 	 VALUES (` + string(h.note.Userid) + `, ` + string(h.note.Listid) + `, '` + h.note.Content + `');`); err != nil {
-	// 	log.Fatal(err)
-	// }
-	//
-	// If PUT request
-	// extract noteid and note content from POST content
-	// update row in notes table corresponding to noteid
-	// If DELETE request
-	// extract noteid
-	// delete corresponding row in notes table
+	anvar := List{Id: 0, Userid: 3, Name: "Important"}
+	if r.Method == http.MethodGet {
+		renderJSON(w, anvar)
+		return
+		// return all lists
+	} else if r.Method == http.MethodPost {
+		// create new list object
+		var newlist List
+		// store name and userid
+		parseJSON(w, r, &newlist)
+		// add row in lists table with corresponding userid and name
+		if _, err := h.db.Exec(
+			`INSERT INTO lists (userid, name)
+			 VALUES (` + string(newlist.Userid) + `, ` + string(newlist.Name) + `);`); err != nil {
+			log.Fatal(err)
+		}
+		return
+	} else if r.Method == http.MethodPut {
+		// TODO: extract listname from url path
+		// create new list object
+		var newlist List
+		// store name and userid
+		parseJSON(w, r, &newlist)
+		// TODO: update row in lists table with corresponding userid and name
+		// if _, err := h.db.Exec(
+		// 	`UPDATE lists SET name = '` + newlist.Name + `' WHERE id = '` + listname + `';`); err != nil {
+		// 	log.Fatal(err)
+		// }
+		return
+	} else if r.Method == http.MethodDelete {
+		// TODO: extract list name from path
+		// delete corresponding row in lists table
+		// if _, err := h.db.Exec(`DELETE FROM lists WHERE name = '` + listname + `';`); err != nil {
+		// 	log.Fatal(err)
+		// }
+		return
+	} else {
+		http.Error(w, fmt.Sprintf("Expected method GET, POST, PUT, or DELETE, got %v", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 }
 
 func (h *NoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// extract userid from jwt token
+	// TODO: call auth func (middleware?)
 	//
-	// if GET request return all notes
-	//
-	// if POST request then,
-	// extract listid and note content from POST content
-	// add row in notes table with corresponding userid, listid, and content
-	// if _, err := h.db.Exec(
-	// 	`INSERT INTO note (userid, listid, content)
-	// 	 VALUES (` + string(h.note.Userid) + `, ` + string(h.note.Listid) + `, '` + h.note.Content + `');`); err != nil {
-	// 	log.Fatal(err)
-	// }
-	//
-	// If PUT request
-	// extract noteid and note content from POST content
-	// update row in notes table corresponding to noteid
-	// If DELETE request
-	// extract noteid
-	// delete corresponding row in notes table
+	if r.Method == http.MethodGet {
+		// TODO: get userid from url path
+		// get all notes for userid
+		// notes, err := getNotes(h.db, userid)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// // respond with all note objects
+		// renderJSON(w, notes)
+		return
+	} else if r.Method == http.MethodPost {
+		// create new note object
+		var newnote Note
+		// store name and userid
+		parseJSON(w, r, &newnote)
+		// add row in notes table
+		if _, err := h.db.Exec(
+			`INSERT INTO note (userid, listid, content)
+			 VALUES (` + string(newnote.Userid) + `, ` + string(newnote.Listid) + `, '` + newnote.Content + `');`); err != nil {
+			log.Fatal(err)
+		}
+		return
+	} else if r.Method == http.MethodPut {
+		// create new note object
+		var newnote Note
+		// store name and userid
+		parseJSON(w, r, &newnote)
+		// update row in notes table corresponding to noteid
+		if _, err := h.db.Exec(
+			`UPDATE notes SET content = '` + newnote.Content + `' WHERE id = '` + string(newnote.Id) + `';`); err != nil {
+			log.Fatal(err)
+		}
+		return
+	} else if r.Method == http.MethodDelete {
+		// TODO: extract noteid path
+		// delete row in notes table corresponding to noteid
+		//if _, err := h.db.Exec(
+		//	`DELETE	FROM notes WHERE Id = '` + noteid + `';`); err != nil {
+		//	log.Fatal(err)
+		//}
+		return
+	} else {
+		http.Error(w, fmt.Sprintf("Expected method GET, POST, PUT, or DELETE, got %v", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+}
+
+func getLists(db *sql.DB, userid int32) ([]List, error) {
+	rows, err := db.Query(`SELECT * FROM lists WHERE userid = ?`, userid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	// An user slice to hold data from returned rows.
+	var lists []List
+
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var lst List
+		if err := rows.Scan(&lst.Id, &lst.Userid, &lst.Name); err != nil {
+			return lists, err
+		}
+		lists = append(lists, lst)
+	}
+	if err = rows.Err(); err != nil {
+		return lists, err
+	}
+	return lists, nil
+}
+
+func getNotes(db *sql.DB, userid int32) ([]Note, error) {
+	// query database for all notes with matching userid
+	rows, err := db.Query(`SELECT * FROM notes WHERE userid = ?`, userid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	// An user slice to hold data from returned rows.
+	var notes []Note
+
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var nt Note
+		if err := rows.Scan(&nt.Id, &nt.Userid, &nt.Listid, &nt.Content); err != nil {
+			return notes, err
+		}
+		notes = append(notes, nt)
+	}
+	if err = rows.Err(); err != nil {
+		return notes, err
+	}
+	return notes, nil
 }
 
 func databaseInit() *sql.DB {
@@ -198,6 +371,7 @@ func databaseInit() *sql.DB {
 	fmt.Println("Database Connected!")
 
 	// Create the "users" table.
+	// Note: Possibly change SERIAL (postgres & cockroach) to UUID (cockroach only)
 	if _, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id SERIAL PRIMARY KEY, 
@@ -235,30 +409,6 @@ func databaseInit() *sql.DB {
 		log.Fatal(err)
 	}
 	return db
-}
-
-func allUsers(db *sql.DB) ([]User, error) {
-	rows, err := db.Query(`SELECT id FROM users WHERE username = ?`, "admin")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	// An user slice to hold data from returned rows.
-	var users []User
-
-	// Loop through rows, using Scan to assign column data to struct fields.
-	for rows.Next() {
-		var usr User
-		if err := rows.Scan(&usr.Id, &usr.Username, &usr.Password); err != nil {
-			return users, err
-		}
-		users = append(users, usr)
-	}
-	if err = rows.Err(); err != nil {
-		return users, err
-	}
-	return users, nil
 }
 
 func jsonMayhaps(w http.ResponseWriter, r *http.Request) {
