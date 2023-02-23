@@ -2,7 +2,7 @@
 
 - Routing? Bare `net/http` it is.
 - Using `golang.org/x/crypto/bcrypt` for password hashing
-- most likely using `github.com/dgrijalva/jwt-go` for auth
+- most likely using `github.com/golang-jwt/jwt` for auth
 
 #### Misc 
 
