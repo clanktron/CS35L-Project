@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	//_  "github.com/cockroachdb/cockroach-go/crdb"
 	_ "github.com/lib/pq"
@@ -70,11 +71,49 @@ func main() {
 	//        - PUT: update note data
 	//        - DELETE: delete note
 
-	mux.HandleFunc("/test", qwerty)
 	mux.HandleFunc("/", greet)
-	mux.HandleFunc("/rad-140", jsonMayhaps)
-	mux.HandleFunc("/favicon.ico", favicon)
 	fmt.Printf("Starting Server...\n")
 	http.ListenAndServe("0.0.0.0:"+port, mux)
 	fmt.Printf("Now listening on port " + port + ".")
 }
+
+func greet(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	fmt.Fprintf(w, "Hello World! %s", time.Now())
+}
+
+//	mux.HandleFunc("/test", qwerty)
+//	mux.HandleFunc("/rad-140", jsonMayhaps)
+//	mux.HandleFunc("/favicon.ico", favicon)
+
+// func favicon(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	http.ServeFile(w, r, "./favicon_io/favicon.ico")
+// }
+
+// func jsonMayhaps(w http.ResponseWriter, r *http.Request) {
+// 	rawData := []Note{
+// 		{Id: 0, Userid: 1, Listid: 1, Content: "Do your math 61 hwk."},
+// 		{Id: 1, Userid: 1, Listid: 1, Content: "This is another test."},
+// 	}
+//
+// 	data, err := json.Marshal(rawData)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+//
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Write(data)
+// }
+
+// func qwerty(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Write([]byte("This is a string.\n"))
+// 	w.Write([]byte(html.EscapeString(r.URL.Path)))
+// 	w.Write([]byte("Another test"))
+
+// 	fmt.Printf("accessed\n")
+
+// }

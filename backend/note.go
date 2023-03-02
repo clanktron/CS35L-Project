@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"net/http"
 )
 
 type Note struct {
@@ -9,6 +11,10 @@ type Note struct {
 	Userid  int32
 	Listid  int32
 	Content string
+}
+
+type NoteHandler struct {
+	db *sql.DB
 }
 
 func GetNotes(db *sql.DB, userid int32) ([]Note, error) {
@@ -53,4 +59,46 @@ func addNote(db *sql.DB, newnote Note) error {
 		return err
 	}
 	return nil
+}
+
+func (h *NoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// TODO: call auth func (middleware?)
+	//
+	if r.Method == http.MethodGet {
+		// TODO: get userid from url path
+		// get all notes for userid
+		// notes, err := getNotes(h.db, userid)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// // respond with all note objects
+		// renderJSON(w, notes)
+		return
+	} else if r.Method == http.MethodPost {
+		// create new note object
+		var newnote Note
+		parseJSON(w, r, &newnote)
+		// store name and userid
+		addNote(h.db, newnote)
+		return
+	} else if r.Method == http.MethodPut {
+		// create new note object
+		var newnote Note
+		parseJSON(w, r, &newnote)
+		// update name and userid
+		updateNote(h.db, newnote)
+		return
+	} else if r.Method == http.MethodDelete {
+		// TODO: extract noteid path
+		// delete row in notes table corresponding to noteid
+		//if _, err := h.db.Exec(
+		//	`DELETE	FROM notes WHERE Id = '` + noteid + `';`); err != nil {
+		//	log.Fatal(err)
+		//}
+		return
+	} else {
+		http.Error(w, fmt.Sprintf("Expected method GET, POST, PUT, or DELETE, got %v", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
 }
