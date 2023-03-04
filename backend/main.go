@@ -36,40 +36,39 @@ func main() {
 	fmt.Println("Database Connected!")
 	defer db.Close()
 
-	// - REST Schema: (prefix: https://\<backendurl\>/api/v0/)
+	// REST Schema: (prefix: https://<backendurl>/api/v0/)
 	mux := http.NewServeMux()
-	// loginH := LoginHandler{db: db}
+
 	mux.Handle("/login", &LoginHandler{db})
-	//    - /login
-	//        - POST: should accept username and password
-	//            - returns authentication cookie/token
+	// POST: should accept username and password
+	//   - returns authentication cookie/token
+
 	mux.Handle("/api/v0/user", &UserHandler{db})
-	//    - /user
-	//        - POST: should accept username and password
-	//            - adds user to database
-	//            - returns authentication cookie/token
-	//        - DELETE: accept password in body?
-	//			  - checks password matches jwt user password in database
-	//            - deletes user from database
-	//            - revokes jwt token
+	// POST: should accept username and password
+	//   - adds user to database
+	//   - returns authentication cookie/token
+	// DELETE: accept password in body?
+	//   - checks password matches jwt user password in database
+	//   - deletes user from database
+	//   - revokes jwt token
+
 	mux.Handle("/api/v0/lists", &ListHandler{db})
-	//    - /lists
-	//        - GET: return all lists for user
-	//        - POST: create new list
+	// GET: return all lists for user
+	// POST: create new list
+
 	// mux.Handle("/api/v0/list/{listid}", &ListHandler{db, testlist})
-	//    - /lists/{list.name}
-	//        - GET: return list metadata
-	//        - PUT: update list metadata
-	//        - DELETE: delete list
+	// GET: return list metadata
+	// PUT: update list metadata
+	// DELETE: delete list
+
 	// mux.Handle("/api/v0/list/{listid}/note/", &NoteHandler{db, testnote})
-	//    - /lists/{list.name}/notes
-	//        - GET: return all notes for list
-	//        - POST: create new note
+	// GET: return all notes for list
+	// POST: create new note
+
 	// mux.Handle("/api/v0/list/{listid}/note/{noteid}", &NoteHandler{db, testnote})
-	//    - /lists/{list.name}/notes/{noteid}
-	//        - GET: returns note data
-	//        - PUT: update note data
-	//        - DELETE: delete note
+	// GET: returns note data
+	// PUT: update note data
+	// DELETE: delete note
 
 	mux.HandleFunc("/", greet)
 	fmt.Printf("Starting Server...\n")
