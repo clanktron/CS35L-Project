@@ -8,8 +8,8 @@ import (
 )
 
 type List struct {
-	Id     int32
-	Userid int32
+	Id     int64
+	Userid int64
 	Name   string
 }
 
@@ -20,47 +20,79 @@ type ListHandler struct {
 func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var list List
-	var err error
+	// var err error
 
-	list.Userid, err = verifyJWT(w, r)
-	if err != nil {
-		log.Print(err)
-	}
+	enableCors(w)
 
-	// respond with all lists corresponding to userid
+	// list.Userid, err = verifyJWT(r)
+	// if err != nil {
+	// 	log.Print(err)
+	// 	return
+	// }
+
 	if r.Method == http.MethodGet {
+
+		list.Userid = 0
 
 		lists, err := getLists(h.db, list.Userid)
 		if err != nil {
 			log.Print("Error getting lists from database")
+			log.Print(err)
+			return
 		}
-		renderJSON(w, lists)
+		if err := renderJSON(w, lists); err != nil {
+			log.Print(err)
+			return
+		}
 
 		return
 	} else if r.Method == http.MethodPost {
 
-		parseJSON(w, r, &list)
-		addList(h.db, list)
+		if err := parseJSON(w, r, &list); err != nil {
+			log.Print(err)
+			return
+		}
+		if err := addList(h.db, list); err != nil {
+			log.Print(err)
+			return
+		}
+		log.Print("Added list!\n")
 
 		return
 	} else if r.Method == http.MethodPut {
 		// TODO: extract listname from url path
-		var oldlistname string
+		oldlistname := "swagger eg"
 
-		parseJSON(w, r, &list)
-		updateList(h.db, list, oldlistname)
+		if err := parseJSON(w, r, &list); err != nil {
+			log.Print("Error parsing json payload\n")
+			log.Print(err)
+			return
+		}
+		if err := updateList(h.db, list, oldlistname); err != nil {
+			log.Printf("Error updating list %s\n", oldlistname)
+			log.Print(err)
+			return
+		}
+		log.Print("Updated List!\n")
 
 		return
 	} else if r.Method == http.MethodDelete {
 		// TODO: extract listname from path
-		var listname string
+		listname := "swipeage"
 		list.Name = listname
+		list.Userid = 0
 
-		deleteList(h.db, list)
+		if err := deleteList(h.db, list); err != nil {
+			log.Print(err)
+			log.Print("Failed to delete list\n")
+		}
+		log.Printf("Deleted list %s\n", listname)
 
 		return
+	} else if r.Method == http.MethodOptions {
+		return
 	} else {
-		http.Error(w, fmt.Sprintf("Expected method GET, POST, PUT, or DELETE, got %v", r.Method), http.StatusMethodNotAllowed)
+		http.Error(w, fmt.Sprintf("Expected method GET, POST, PUT, OPTIONS, or DELETE, got %v", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
 }
@@ -69,18 +101,18 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func addList(db *sql.DB, newlist List) error {
 	if _, err := db.Exec(
 		`INSERT INTO lists (userid, name)
-		 VALUES (` + string(newlist.Userid) + `, ` + string(newlist.Name) + `);`); err != nil {
+			VALUES ($1, $2);`, newlist.Userid, newlist.Name); err != nil {
 		return err
 	}
 	return nil
 }
 
 // query database for all lists corresponding to the given user - returns a slice of the lists and error
-func getLists(db *sql.DB, userid int32) ([]List, error) {
+func getLists(db *sql.DB, userid int64) ([]List, error) {
 	// An user slice to hold data from returned rows.
 	var lists []List
 
-	rows, err := db.Query(`SELECT * FROM lists WHERE userid = ?`, string(userid))
+	rows, err := db.Query(`SELECT * FROM lists WHERE userid = ?`, userid)
 	if err != nil {
 		return lists, err
 	}
@@ -103,9 +135,7 @@ func getLists(db *sql.DB, userid int32) ([]List, error) {
 // update row in lists table with corresponding listname and username - returns error
 func updateList(db *sql.DB, newlist List, oldlistname string) error {
 	if _, err := db.Exec(
-		// TODO: need to match userid as well
-		`UPDATE lists SET name = '` + newlist.Name + `' WHERE name = '` + oldlistname + `';`); err != nil {
-		log.Print(err)
+		`UPDATE lists SET name = $1 WHERE name = $2 AND userid = $3;`, newlist.Name, oldlistname, newlist.Id); err != nil {
 		return err
 	}
 	return nil
@@ -114,9 +144,7 @@ func updateList(db *sql.DB, newlist List, oldlistname string) error {
 // delete corresponding row in lists table
 func deleteList(db *sql.DB, list List) error {
 	if _, err := db.Exec(
-		// TODO: need to match userid as well
-		`DELETE FROM lists WHERE name = '` + list.Name + `';`); err != nil {
-		log.Print(err)
+		`DELETE FROM lists WHERE name = $1 AND userid = $2;`, list.Name, list.Userid); err != nil {
 		return err
 	}
 	return nil

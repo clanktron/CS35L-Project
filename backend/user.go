@@ -2,19 +2,15 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	Id       int32
+	Id       int64
 	Username string
 	Password string
 }
@@ -30,25 +26,33 @@ type LoginHandler struct {
 // accepts POST requests with new user payloads - responds with jwt or error
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	_, err := verifyJWT(w, r)
-	if err != nil {
-		log.Print(err)
-	}
+	enableCors(w)
+
+	// _, err := verifyJWT(r)
+	// if err != nil {
+	// 	log.Print(err)
+	// }
 
 	if r.Method == http.MethodPost {
 
 		var newuser User
+		var err error
 
 		// read json payload into new user object
 		if err := parseJSON(w, r, &newuser); err != nil {
 			log.Print(err)
 		}
 
-		// hash user password
-		if bytes, err := bcrypt.GenerateFromPassword([]byte(newuser.Password), 4); err != nil {
+		// check contents of payload
+		fmt.Print(newuser, "\n")
+
+		// add user to database
+		addUser(h.db, newuser)
+
+		// reassign stored values in user object
+		newuser, err = getUser(h.db, newuser.Username)
+		if err != nil {
 			log.Print(err)
-		} else {
-			newuser.Password = string(bytes)
 		}
 
 		// respond with jwt
@@ -56,24 +60,28 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print(err)
 		}
-		http.SetCookie(w, &http.Cookie{
+
+		fmt.Print(token, "\n")
+
+		ck := http.Cookie{
 			Name:  "token",
 			Value: token,
-		})
+		}
+
+		http.SetCookie(w, &ck)
 
 		return
+	} else if r.Method == http.MethodOptions {
+		return
 	} else {
-
-		http.Error(w, fmt.Sprintf("Expected method POST, got %v", r.Method), http.StatusMethodNotAllowed)
-
+		// http.Error(w, fmt.Sprintf("Expected method POST, got %v", r.Method), http.StatusMethodNotAllowed)
+		fmt.Printf("Expected method POST, got %v", r.Method)
 		return
 	}
 
 	// else if r.Method == http.MethodDelete {
-
 	// 	parse username from jwt token
 	// 	remove row with corresponding username
-
 	// 	return
 
 	// }
@@ -83,10 +91,12 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // accepts POST requests with user credentials - responds with a jwt or error
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	_, err := verifyJWT(w, r)
-	if err != nil {
-		log.Print(err)
-	}
+	enableCors(w)
+
+	// _, err := verifyJWT(r)
+	// if err != nil {
+	// 	log.Print(err)
+	// }
 
 	if r.Method == http.MethodPost {
 
@@ -110,6 +120,8 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Value: token,
 		})
 
+	} else if r.Method == http.MethodOptions {
+		return
 	} else {
 		http.Error(w, fmt.Sprintf("Expected method POST, got %v", r.Method), http.StatusMethodNotAllowed)
 		return
@@ -118,6 +130,12 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // adds user object to the database - returns err
 func addUser(db *sql.DB, newuser User) error {
+	// hash user password
+	if bytes, err := bcrypt.GenerateFromPassword([]byte(newuser.Password), 4); err != nil {
+		log.Print(err)
+	} else {
+		newuser.Password = string(bytes)
+	}
 	// insert new user object in database
 	if _, err := db.Exec(
 		`INSERT INTO users (username, password)
@@ -125,6 +143,29 @@ func addUser(db *sql.DB, newuser User) error {
 		return err
 	}
 	return nil
+}
+
+// returns user object corresponding to given username
+func getUser(db *sql.DB, username string) (User, error) {
+
+	var user User
+
+	// query database for user with matching username
+	row, err := db.Query(`SELECT * FROM users WHERE id = ?`, username)
+	if err != nil {
+		return user, err
+	}
+	defer row.Close()
+
+	// scan row entry into user object
+	if err := row.Scan(user.Id, user.Username, user.Password); err != nil {
+		return user, err
+	}
+	if err = row.Err(); err != nil {
+		return user, err
+	}
+
+	return user, err
 }
 
 // queries database for all users - returns err and a slice of all users; empty if err
@@ -159,20 +200,8 @@ func getUsers(db *sql.DB) ([]User, error) {
 // checks if user credentials are valid - returns nil on success; err otherwise
 func verifyUser(db *sql.DB, user User) error {
 
-	var verified User
-
-	// query database for user with matching username
-	row, err := db.Query(`SELECT * FROM users WHERE id = ?`, user.Username)
+	verified, err := getUser(db, user.Username)
 	if err != nil {
-		return err
-	}
-	defer row.Close()
-
-	// scan row entry into user object
-	if err := row.Scan(verified.Id, verified.Username, verified.Password); err != nil {
-		return err
-	}
-	if err = row.Err(); err != nil {
 		return err
 	}
 
@@ -182,81 +211,4 @@ func verifyUser(db *sql.DB, user User) error {
 	}
 
 	return nil
-}
-
-// generate JWT from given user - returns err and token
-func generateJWT(user User) (string, error) {
-
-	// pull secret from environment
-	secret := os.Getenv("JWTSECRET")
-	if secret == "" {
-		secret = "12043$521p8ijz4"
-	}
-
-	// generate new jwt
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-
-	// add json payload
-	claims["userid"] = user.Id
-	claims["exp"] = time.Now().Add(time.Minute * 2).Unix()
-
-	// stringify token
-	tokenString, err := token.SignedString(secret)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
-}
-
-// checks if http request is authorized/logged in - returns error and username string; empty if err
-func verifyJWT(w http.ResponseWriter, r *http.Request) (int32, error) {
-
-	// pull secret from environment
-	secret := os.Getenv("JWTSECRET")
-	if secret == "" {
-		secret = "insecure"
-	}
-
-	// verify token header exists
-	if r.Header["Token"] == nil {
-		fmt.Fprintf(w, "Token not found in header\n")
-		return 0, errors.New("Missing auth token")
-	}
-
-	// parse and check token validity
-	token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("There was an error in parsing")
-		}
-		return secret, nil
-	})
-	if err != nil || token == nil {
-		fmt.Fprintf(w, "invalid token")
-		return 0, err
-	}
-
-	// parse claims from token
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		fmt.Fprintf(w, "couldn't parse claims")
-		return 0, errors.New("Token error")
-	}
-
-	// check if token is expired
-	exp := claims["exp"].(float64)
-	if int64(exp) < time.Now().Local().Unix() {
-		fmt.Fprintf(w, "token expired")
-		return 0, errors.New("Token Expired")
-	}
-
-	userid := claims["userid"].(int32)
-	log.Print("Valid request by user with id %i", userid)
-
-	return userid, nil
-}
-
-func terminateJWT() {
-	// replace jwt with another that expires immediately
 }

@@ -43,7 +43,7 @@ func main() {
 	// POST: should accept username and password
 	//   - returns authentication cookie/token
 
-	mux.Handle("/api/v0/user", &UserHandler{db})
+	mux.Handle("/user", &UserHandler{db})
 	// POST: should accept username and password
 	//   - adds user to database
 	//   - returns authentication cookie/token
@@ -52,7 +52,7 @@ func main() {
 	//   - deletes user from database
 	//   - revokes jwt token
 
-	mux.Handle("/api/v0/lists", &ListHandler{db})
+	mux.Handle("/lists", &ListHandler{db})
 	// GET: return all lists for user
 	// POST: create new list
 
@@ -61,7 +61,7 @@ func main() {
 	// PUT: update list metadata
 	// DELETE: delete list
 
-	// mux.Handle("/api/v0/list/{listid}/note/", &NoteHandler{db, testnote})
+	mux.Handle("/notes", &NoteHandler{db})
 	// GET: return all notes for list
 	// POST: create new note
 

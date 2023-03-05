@@ -34,7 +34,7 @@ func databaseInit(dbuser string, dbpass string, dburl string) (*sql.DB, error) {
 
 	// Create the "list" table.
 	if _, err := db.Exec(
-		`CREATE TABLE IF NOT EXISTS list (
+		`CREATE TABLE IF NOT EXISTS lists (
 	           id SERIAL PRIMARY KEY,
 	           userid INT NOT NULL REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
 	           name STRING NOT NULL
@@ -44,20 +44,19 @@ func databaseInit(dbuser string, dbpass string, dburl string) (*sql.DB, error) {
 
 	// Create the "note" table.
 	if _, err := db.Exec(
-		`CREATE TABLE IF NOT EXISTS note (
+		`CREATE TABLE IF NOT EXISTS notes (
 	           id SERIAL PRIMARY KEY,
 	           userid INT NOT NULL REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
-	           listid INT NOT NULL REFERENCES list(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+	           listid INT NOT NULL REFERENCES lists(Id) ON UPDATE CASCADE ON DELETE CASCADE,
 	           content VARCHAR(280)
 	           )`); err != nil {
 		return db, err
 	}
 
-	// Ensure admin user is in "users" table.
-	// if _, err := db.Exec(
-	// 	`INSERT INTO users (id, username, password)
-	// 	 VALUES (0, 'admin', 'admin');`); err != nil {
-	// 	log.Fatal(err)
-	// }
+	//Ensure admin user is in "users" table.
+	if _, err := db.Exec(
+		`INSERT INTO users (id, username, password)
+		 VALUES (0, 'admin', 'admin');`); err != nil {
+	}
 	return db, err
 }
