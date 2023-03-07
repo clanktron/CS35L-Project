@@ -54,9 +54,14 @@ func databaseInit(dbuser string, dbpass string, dburl string) (*sql.DB, error) {
 	}
 
 	//Ensure admin user is in "users" table.
-	if _, err := db.Exec(
-		`INSERT INTO users (id, username, password)
-		 VALUES (0, 'admin', 'admin');`); err != nil {
+	admin := User{
+		Username: "admin",
+		Password: "admin",
 	}
+
+	if err := initAdmin(db, admin); err != nil {
+		return db, err
+	}
+
 	return db, err
 }
