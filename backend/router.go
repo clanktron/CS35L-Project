@@ -93,7 +93,6 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("User %s has been successfully created", newuser.Username)
-		w.Write([]byte(fmt.Sprintf("User %s has been successfully created", newuser.Username)))
 
 		// add default list to user
 		defaultList := List{
@@ -105,7 +104,6 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("Default list has been created for %s", newuser.Username)
-		w.Write([]byte(fmt.Sprintf("Default list has been created for %s", newuser.Username)))
 
 		// respond with jwt
 		token, err := generateJWT(newuser)
@@ -389,6 +387,7 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 					return
 				}
 				log.Printf("Added note to list with id %d", note.Listid)
+				w.Write([]byte(fmt.Sprintf("Added note to list with id %d", note.Listid)))
 
 				return
 			case http.MethodOptions:

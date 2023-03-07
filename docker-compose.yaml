@@ -1,0 +1,21 @@
+---
+version: "3"
+services:
+      cockroach:
+        image: cockroachdb/cockroach:v22.2.6
+        container_name: cockroach
+        ports:
+            - 8080:8080
+            - 26257:26257
+            - 4000:4000
+        command: start-single-node --insecure
+        volumes:
+            - ./roachdata:/cockroach/cockroach-data
+
+      notes-backend:
+        image: clanktron/notes-backend
+        container_name: notes-backend
+        restart: unless-stopped
+        depends_on:
+          - cockroach
+        network_mode: service:cockroach
