@@ -12,7 +12,7 @@ For Frontend Development:
 
 Download and Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
->After installation ensure the you can run the `docker` command in your terminal
+>After installation ensure you can run the `docker` command in your terminal
 
 In the root directory of the project run the following:
 
