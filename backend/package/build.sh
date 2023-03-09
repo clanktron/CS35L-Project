@@ -1,7 +1,7 @@
 #!/bin/sh
 
 username="${username:=clanktron}"
-name="${name:="notesbackend"}"
+name="${name:="notes-backend"}"
 fullname="$username/$name"
 port="${port:="4000"}"
 
@@ -9,4 +9,4 @@ port="${port:="4000"}"
 docker build  -t "$fullname" -f package/dockerfile . 
 
 # Run container
-docker run --name="$name" -p "$port":"$port" "$fullname"
+# docker run --name="$name" -p "$port":"$port" "$fullname"
