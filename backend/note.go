@@ -12,9 +12,9 @@ type Note struct {
 }
 
 // delete row in notes table corresponding to noteid
-func deleteNote(db *sql.DB, note Note) error {
+func deleteNote(db *sql.DB, noteid int64) error {
 	if _, err := db.Exec(
-		`DELETE	FROM notes WHERE id = $1;`, note.Id); err != nil {
+		`DELETE	FROM notes WHERE id = $1;`, noteid); err != nil {
 		return err
 	}
 	return nil
@@ -31,12 +31,12 @@ func getNote(db *sql.DB, noteid int64) (Note, error) {
 }
 
 // queries database for all notes corresponding to user - returns a Notes slice and error
-func getNotes(db *sql.DB, note Note) ([]Note, error) {
+func getNotes(db *sql.DB, userid int64, listid int64) ([]Note, error) {
 	// An user slice to hold data from returned rows.
 	var notes []Note
 
 	// query database for all notes with matching username
-	rows, err := db.Query(`SELECT * FROM notes WHERE userid = $1 AND listid = $2`, note.Userid, note.Listid)
+	rows, err := db.Query(`SELECT * FROM notes WHERE userid = $1 AND listid = $2`, userid, listid)
 	if err != nil {
 		return notes, err
 	}
