@@ -108,9 +108,9 @@ func verifyUser(db *sql.DB, user User) error {
 }
 
 // delete corresponding row in users table
-func deleteUser(db *sql.DB, user User) error {
+func deleteUser(db *sql.DB, userid int64) error {
 	if _, err := db.Exec(
-		`DELETE FROM users WHERE username = $1 AND password = $2;`, user.Username, user.Password); err != nil {
+		`DELETE FROM users WHERE id = $1;`, userid); err != nil {
 		return err
 	}
 	return nil

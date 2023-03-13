@@ -56,9 +56,9 @@ func getList(db *sql.DB, listname string, userid int64) (List, error) {
 }
 
 // update row in lists table with corresponding listname and username - returns error
-func updateList(db *sql.DB, updatedlist List, oldlist List) error {
+func updateList(db *sql.DB, updatedlist List, oldname string, userid int64) error {
 	if _, err := db.Exec(
-		`UPDATE lists SET name = $1 WHERE name = $2 AND userid = $3;`, updatedlist.Name, oldlist.Name, oldlist.Userid); err != nil {
+		`UPDATE lists SET name = $1 WHERE name = $2 AND userid = $3;`, updatedlist.Name, oldname, userid); err != nil {
 		return err
 	}
 	return nil

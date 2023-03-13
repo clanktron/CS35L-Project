@@ -122,12 +122,34 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return
 	case http.MethodDelete:
+
 		// parse username from jwt token
-		// remove row with corresponding username
-		// if err := deleteUser(); err != nil {
-		// 	log.Print(err)
-		// 	log.Print("Failed to delete user %s")
-		// }
+		userid, err := verifyJWT(r)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		var user User
+		// parse username and password into JSON object
+		if err := parseJSON(w, r, &user); err != nil {
+			log.Print(err)
+			return
+		}
+		// check credentials
+		if err := verifyUser(h.db, user); err != nil {
+			log.Print(err)
+			return
+		}
+
+		// remove row with corresponding userid
+		if err := deleteUser(h.db, userid); err != nil {
+			log.Print(err)
+			log.Printf("Failed to delete user with id %d", userid)
+			w.Write([]byte(fmt.Sprintf("Failed to delete user with id %d", userid)))
+			return
+		}
+		w.Write([]byte(fmt.Sprintf("Successfully deleted user with id %d", userid)))
 		return
 	case http.MethodOptions:
 		return
@@ -197,17 +219,15 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	var list List
-	list.Name, r.URL.Path = ShiftPath(r.URL.Path)
-
-	var err error
+	var listname string
+	listname, r.URL.Path = ShiftPath(r.URL.Path)
 
 	if r.URL.Path != "/" {
 		var head string
 		head, r.URL.Path = ShiftPath(r.URL.Path)
 		switch head {
 		case "note":
-			h.NoteHandler.Handler(list.Name).ServeHTTP(w, r)
+			h.NoteHandler.Handler(listname).ServeHTTP(w, r)
 		default:
 			http.Error(w, "Not Found", http.StatusNotFound)
 		}
@@ -217,18 +237,18 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	enableCors(w)
 
 	// verify user is authenticated and store userid
-	list.Userid, err = verifyJWT(r)
+	userid, err := verifyJWT(r)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	if list.Name == "" {
+	if listname == "" {
 		switch r.Method {
 		case http.MethodGet:
 
 			// get array of list objects
-			lists, err := getLists(h.db, list.Userid)
+			lists, err := getLists(h.db, userid)
 			if err != nil {
 				log.Print("Error getting lists from database")
 				log.Print(err)
@@ -244,14 +264,22 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case http.MethodPost:
 
 			var newlist List
+
+			// parse payload into newlist object
 			if err := parseJSON(w, r, &newlist); err != nil {
 				log.Print(err)
 				return
 			}
+
+			// set userid to jwt result to prevent impersonation
+			newlist.Userid = userid
+
+			// add list to database
 			if err := addList(h.db, newlist); err != nil {
 				log.Print(err)
 				return
 			}
+
 			log.Printf("Added \"%s\" to lists!", newlist.Name)
 			w.Write([]byte(fmt.Sprintf("Added \"%s\" to lists!", newlist.Name)))
 
@@ -267,7 +295,7 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 
-		list, err := getList(h.db, list.Name, list.Userid)
+		list, err := getList(h.db, listname, userid)
 		if err != nil {
 			log.Print("Error getting list from database")
 			log.Print(err)
@@ -287,8 +315,8 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Print(err)
 			return
 		}
-		if err := updateList(h.db, updatedlist, list); err != nil {
-			log.Printf("Error updating list %s\n", list.Name)
+		if err := updateList(h.db, updatedlist, listname, userid); err != nil {
+			log.Printf("Error updating list %s\n", listname)
 			log.Print(err)
 			return
 		}
@@ -297,6 +325,9 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return
 	case http.MethodDelete:
+		var list List
+		list.Userid = userid
+		list.Name = listname
 		if err := deleteList(h.db, list); err != nil {
 			log.Print(err)
 			log.Print("Failed to delete list\n")
@@ -316,8 +347,6 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *NoteHandler) Handler(listname string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		var note Note
-		var err error
 		var head string
 		head, r.URL.Path = ShiftPath(r.URL.Path)
 
@@ -328,7 +357,7 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 
 		enableCors(w)
 
-		note.Userid, err = verifyJWT(r)
+		userid, err := verifyJWT(r)
 		if err != nil {
 			log.Print(err)
 			return
@@ -336,30 +365,31 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 
 		// get details of parent list for use later
 		var parentlist List
-		parentlist, err = getList(h.db, listname, note.Userid)
+		parentlist, err = getList(h.db, listname, userid)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, fmt.Sprintf("Invalid list identifier %s", listname), http.StatusBadRequest)
 			return
 		}
-		note.Listid = parentlist.Id
+		listid := parentlist.Id
 
 		// set noteid to postfix of url if it ends with such
+		var noteid int64
 		if head != "" {
-			note.Id, err = strconv.ParseInt(head, 10, 64)
+			noteid, err = strconv.ParseInt(head, 10, 64)
 			if err != nil {
-				log.Printf("Invalid note id %d", note.Id)
-				http.Error(w, fmt.Sprintf("Invalid note id %d", note.Id), http.StatusBadRequest)
+				log.Printf("Invalid note id %d", noteid)
+				http.Error(w, fmt.Sprintf("Invalid note id %d", noteid), http.StatusBadRequest)
 				return
 			}
 		}
 
-		if note.Id == 0 {
+		if noteid == 0 {
 			switch r.Method {
 			case http.MethodGet:
 
 				// get all notes corresponding to userid in token and listid from listname
-				notes, err := getNotes(h.db, note)
+				notes, err := getNotes(h.db, userid, listid)
 				if err != nil {
 					log.Print(err)
 					log.Print("Failed to get notes from database\n")
@@ -374,20 +404,26 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 				return
 			case http.MethodPost:
 
+				var newnote Note
 				// read note content into note object
-				if err := parseJSON(w, r, &note); err != nil {
+				if err := parseJSON(w, r, &newnote); err != nil {
 					log.Print(err)
 					log.Printf("Failed to parse json payload\n")
 					return
 				}
 
-				if err := addNote(h.db, note); err != nil {
+				// ensure ids are not overwritten
+				newnote.Userid = userid
+				newnote.Listid = listid
+
+				// add note to database
+				if err := addNote(h.db, newnote); err != nil {
 					log.Print(err)
 					log.Print("Failed to add note to database\n")
 					return
 				}
-				log.Printf("Added note to list with id %d", note.Listid)
-				w.Write([]byte(fmt.Sprintf("Added note to list with id %d", note.Listid)))
+				log.Printf("Added note to list with id %d", newnote.Listid)
+				w.Write([]byte(fmt.Sprintf("Added note to list with id %d", newnote.Listid)))
 
 				return
 			case http.MethodOptions:
@@ -402,7 +438,7 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 		case http.MethodGet:
 
 			// retrieve full note object corresponding to given noteid
-			notes, err := getNote(h.db, note.Id)
+			notes, err := getNote(h.db, noteid)
 			if err != nil {
 				log.Print(err)
 				log.Print("Failed to get notes from database\n")
@@ -418,32 +454,37 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 
 		case http.MethodPut:
 
+			var updatednote Note
 			// read note content into note object
-			if err := parseJSON(w, r, &note); err != nil {
+			if err := parseJSON(w, r, &updatednote); err != nil {
 				log.Print(err)
 				log.Printf("Failed to parse json payload\n")
 				return
 			}
-			// update note with userid from token, listid from path, and noteid from path
-			log.Printf("userid: %d, listid: %d, noteid %d, content %s", note.Userid, note.Listid, note.Id, note.Content)
-			if err := updateNote(h.db, note); err != nil {
+
+			// ensure values are not overwritten
+			updatednote.Userid = userid
+			updatednote.Listid = listid
+			updatednote.Id = noteid
+
+			if err := updateNote(h.db, updatednote); err != nil {
 				log.Print(err)
 				log.Print("Failed to update note in database\n")
 				return
 			}
-			log.Printf("Updated note with content \"%s\"", note.Content)
-			w.Write([]byte(fmt.Sprintf("Note with id %d has been updated with content \"%s\"", note.Id, note.Content)))
+			log.Printf("Updated note with content \"%s\"", updatednote.Content)
+			w.Write([]byte(fmt.Sprintf("Note with id %d has been updated with content \"%s\"", noteid, updatednote.Content)))
 
 			return
 		case http.MethodDelete:
 
-			if err := deleteNote(h.db, note); err != nil {
+			if err := deleteNote(h.db, noteid); err != nil {
 				log.Print(err)
 				log.Print("Failed to delete note from database\n")
 				return
 			}
-			log.Printf("Note with id %d has been deleted", note.Id)
-			w.Write([]byte(fmt.Sprintf("Note with id %d has been deleted", note.Id)))
+			log.Printf("Note with id %d has been deleted", noteid)
+			w.Write([]byte(fmt.Sprintf("Note with id %d has been deleted", noteid)))
 
 			return
 		case http.MethodOptions:

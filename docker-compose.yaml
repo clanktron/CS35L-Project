@@ -13,7 +13,7 @@ services:
             - ./roachdata:/cockroach/cockroach-data
 
       notes-backend:
-        image: clanktron/notes-backend
+        image: clanktron/notes-backend:latest
         container_name: notes-backend
         restart: unless-stopped
         depends_on:
