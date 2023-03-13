@@ -77,13 +77,22 @@ func verifyJWT(r *http.Request) (int64, error) {
 		secret = "cZydEgWlyBB9HwucTwyExcaYEX1g77q2RsrqlnT1YURvsoNfvWUvLwdS6q58SewMrue1kuMrtl3ahkD6LAvpFlKVBD5oDpariBK2MUcV3HD9f2lfAmThIihvvXi2lho02qgeSEKFuB2Slk5EZkVy17FxEzbJOUywLr0jfmP+aKzLv4TiuHaHbOiVIPefUQHioY1beAnUNPaRFELyv4675uDMWJTpjlXbA6K7+w=="
 	}
 
-	// verify token header exists
-	if r.Header["Token"] == nil {
-		return 0, errors.New("Missing auth token")
+	// get token from cookie
+	c, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			// If the cookie is not set, return an unauthorized status
+			return 0, err
+		}
+		// For any other type of error, return a bad request status
+		return 0, err
 	}
 
+	// Get the JWT string from the cookie
+	tokenstring := c.Value
+
 	// parse and check token validity
-	token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenstring, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return "", errors.New("Invalid JWT Token")
 		}
