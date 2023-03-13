@@ -1,6 +1,6 @@
 # cockroachdb data
 cockroachdb/
-cockroachdb-data/
+cockroach-data/
 roachdata/
 
 # build results
