@@ -1,23 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      <div className="row">
+        <div className="todolist">
+          <h1>Remainder</h1>
+          <ul className="list-group list-group-flush">
+
+            <li className="list-group-item">
+              <div className="form-check">
+                <input className="form-check-input" type="checkbox" value="" id="todo-item-check-1" />
+                <label className="form-check-label" htmlFor="todo-item-check-1">finish frontend</label>
+              </div>
+            </li>
+
+            <li className="list-group-item">
+              <div className="form-check">
+                <input className="form-check-input" type="checkbox" value="" id="todo-item-check-2" />
+                <label className="form-check-label" htmlFor="todo-item-check-2">catch up the recording</label>
+              </div>
+            </li>
+
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
