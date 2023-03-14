@@ -1,19 +1,20 @@
 import React, { useState, useCallback } from 'react';
 import { KEY_RETURN } from 'keycode-js';
 
-function InputBox() {
+function InputBox(props) {
+    const { addNewItem } = props;
     const [value, setValue] = useState('');
     const handleKeyUpEvent = useCallback(
-      e => {
-      if (e.keyCode === KEY_RETURN) {
-        // Add new Todo Here
-        // Clear the text box
+      event => {
+      if (event.keyCode === KEY_RETURN) {
+        addNewItem(event.target.value);
+        setValue('');
         console.log('KEY_RETURN pressed');
       }
-    }, []);
+    }, [addNewItem, setValue]);
     const handleChangeEvent = useCallback(
-      e => {
-        setValue(e.target.value);
+      event => {
+        setValue(event.target.value);
       },
       [setValue]
     );
@@ -30,7 +31,7 @@ function InputBox() {
 
 function RemainderList(props) {
   
-  const { items, title } = props;
+  const { items, title, addNewItem } = props;
 
   const count = items.length;
 
@@ -38,17 +39,17 @@ function RemainderList(props) {
     <div className="remainderlist">
 
         <header>
-        <h1>{title.toUpperCase()}</h1>
-          <InputBox />
+          <h1>{title}</h1>
+          <InputBox addNewItem={addNewItem} />
         </header>
 
         <ul className="list-group list-group-flush">
 
           {items.map(item => (
               <li key={item.id} className="list-group-item">
-                <div className="form-check">
-                  <input className="form-check-input" type="checkbox" value="" id={`tremainder-item-check-${item.id}`} />
-                  <label className="form-check-label" htmlFor={`remainder-item-check-${item.id}`}>
+                <div className="Remainderitem">
+                  <input className="Checkbox" type="checkbox" value="" id={`remainder-item-check-${item.id}`} />
+                  <label className="Remaindertext" htmlFor={`remainder-item-check-${item.id}`}>
                     {item.text}
                   </label>
                 </div>
