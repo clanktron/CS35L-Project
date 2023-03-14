@@ -1,5 +1,12 @@
 import React from 'react';
 
+function InputBox() {
+    return <input type="text" 
+    className="InputBar" 
+    placeholder="Plan your work and work your plan." />;
+}
+
+
 function RemainderList(props) {
   
   const { items, title } = props;
@@ -9,9 +16,12 @@ function RemainderList(props) {
   return (
     <div className="remainderlist">
 
-          <h1>{title}</h1>
+        <header>
+        <h1>{title.toUpperCase()}</h1>
+          <InputBox />
+        </header>
 
-          <ul className="list-group list-group-flush">
+        <ul className="list-group list-group-flush">
 
           {items.map(item => (
               <li key={item.id} className="list-group-item">
@@ -24,14 +34,14 @@ function RemainderList(props) {
               </li>
             ))}
 
-          </ul>
+        </ul>
 
-          <div className="remainder-footer">
-            <span className="count-remainders">{count}</span>
-            {' tasks left'}
-          </div>
-
+        <div className="remainder-footer">
+          <span className="count-remainders">{count}</span>
+          {' tasks left'}
         </div>
+
+    </div>
   );
 }
 

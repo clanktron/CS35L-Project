@@ -33,5 +33,13 @@ body {
   padding: 8px 1px;
 }
 
+.InputBar{
+  color: #074107;
+  padding: 15px;
+  margin: -5px 10px -0px 20px;
+  width: 600px;
+  padding-left: 10px;
+}
+
 
 
