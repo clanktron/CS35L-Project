@@ -1,26 +1,37 @@
 import React from 'react'
 
 function App() {
+  let items = [
+    {
+      id: 1,
+      text: 'Finish Frontend',
+      completed: false
+    },
+    {
+      id: 2,
+      text: 'Catch up recording',
+      completed: false
+    }
+  ];
+  let title = 'Remainder';
+
   return (
     <div className="container">
       <div className="row">
         <div className="todolist">
-          <h1>Remainder</h1>
+          <h1>{title}</h1>
           <ul className="list-group list-group-flush">
 
-            <li className="list-group-item">
-              <div className="form-check">
-                <input className="form-check-input" type="checkbox" value="" id="todo-item-check-1" />
-                <label className="form-check-label" htmlFor="todo-item-check-1">finish frontend</label>
-              </div>
-            </li>
-
-            <li className="list-group-item">
-              <div className="form-check">
-                <input className="form-check-input" type="checkbox" value="" id="todo-item-check-2" />
-                <label className="form-check-label" htmlFor="todo-item-check-2">catch up the recording</label>
-              </div>
-            </li>
+          {items.map(item => (
+              <li key={item.id} className="list-group-item">
+                <div className="form-check">
+                  <input className="form-check-input" type="checkbox" value="" id={`todo-item-check-${item.id}`} />
+                  <label className="form-check-label" htmlFor={`todo-item-check-${item.id}`}>
+                    {item.text}
+                  </label>
+                </div>
+              </li>
+            ))}
 
           </ul>
         </div>
