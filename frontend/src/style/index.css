@@ -3,7 +3,7 @@ body {
   color: #555;
 }
 
-.todolist {
+.remainderlist {
   background-color: #FFF;
   padding: 20px 20px 10px 20px;
   width: 700px;
@@ -13,12 +13,21 @@ body {
   position: relative;
 }
 
-.todolist h1 {
+.remainderlist h1 {
   margin: 10px 20px;
   padding-bottom: 20px;
   text-align: left;
   color: #d27e08a8;
 }
+
+
+.remainder-footer {
+  border-top: 1px solid #EEE;
+  background-color: #f4fce8;
+  margin: 20px -20px -10px -20px;
+  padding: 10px 38px;
+}
+
 
 .list-group-flush> .list-group-item {
   padding: 8px 1px;
