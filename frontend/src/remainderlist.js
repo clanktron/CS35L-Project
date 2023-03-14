@@ -1,8 +1,29 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { KEY_RETURN } from 'keycode-js';
 
 function InputBox() {
-    return <input type="text" 
+    const [value, setValue] = useState('');
+    const handleKeyUpEvent = useCallback(
+      e => {
+      if (e.keyCode === KEY_RETURN) {
+        // Add new Todo Here
+        // Clear the text box
+        console.log('KEY_RETURN pressed');
+      }
+    }, []);
+    const handleChangeEvent = useCallback(
+      e => {
+        setValue(e.target.value);
+      },
+      [setValue]
+    );
+
+    return <input 
+    type="text" 
     className="InputBar" 
+    value={value}
+    onKeyUp={handleKeyUpEvent}
+    onChange={handleChangeEvent}
     placeholder="Plan your work and work your plan." />;
 }
 
