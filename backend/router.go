@@ -115,8 +115,12 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// provide token as cookie to frontend
 		ck := http.Cookie{
-			Name:  "token",
-			Value: token,
+			Name:     "token",
+			Value:    token,
+			MaxAge:   3600,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
 		}
 		http.SetCookie(w, &ck)
 
@@ -127,6 +131,7 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		userid, err := verifyJWT(r)
 		if err != nil {
 			log.Print(err)
+			http.Error(w, "Missing or expired cookie", 401)
 			return
 		}
 
@@ -200,11 +205,18 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Print(err)
 			return
 		}
+		// provide token as cookie to frontend
+		ck := http.Cookie{
+			Name:     "token",
+			Value:    token,
+			MaxAge:   3600,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		}
 		// responds with message to store cookie in browser for future requests
-		http.SetCookie(w, &http.Cookie{
-			Name:  "token",
-			Value: token,
-		})
+		http.SetCookie(w, &ck)
+
 		log.Printf("%s logged in successfully", login.Username)
 		w.Write([]byte(fmt.Sprintf("%s logged in successfully", login.Username)))
 
