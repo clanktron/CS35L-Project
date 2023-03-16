@@ -1,3 +1,11 @@
+# cockroachdb data
+cockroachdb/
+cockroach-data/
+roachdata/
+
+# build results
+build/
+
 # macos clutter
 *.DS_Store
 
