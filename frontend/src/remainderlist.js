@@ -47,12 +47,14 @@ function RemainderList(props) {
 
           {items.map(item => (
               <li key={item.id} className="list-group-item">
-                <div className="Remainderitem">
-                  <input className="Checkbox" type="checkbox" value="" id={`remainder-item-check-${item.id}`} />
+                  <div>
                   <label className="Remaindertext" htmlFor={`remainder-item-check-${item.id}`}>
                     {item.text}
                   </label>
-                </div>
+                  </div>
+                  <div>
+                  <input className="Checkbox" type="checkbox" value="" id={`remainder-item-check-${item.id}`} />
+                  </div>
               </li>
             ))}
 
