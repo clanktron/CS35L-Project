@@ -1,9 +1,45 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
-import AuthContext from "./context/AuthProvider";
-import axios from "./api/axios"
+import React, { useState } from "react";
 
 export const Login = (props) => {
-    const { setAuth } = useContext(AuthContext);
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+
+  const login = async (userName, password) => {
+    await fetch('http://localhost:4000/login', {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+      body: JSON.stringify({
+        username: userName,
+        password: password,
+      }),
+    })
+    .then((data) => console.log(data));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    login(userName, password);
+  };
+
+  return (
+      <div className="form">
+          <h2>ready to grind? log in.</h2>
+          <form className="login-form" onSubmit={handleSubmit}>
+          <input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" id="username" name="username"/>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" id="password" name="password" />
+          <button type="submit" onClick={() => props.onFormSwitch('mainpage')}>log in</button>
+          </form>
+          <button className='link-button' onClick={() => props.onFormSwitch('register')}>create account</button>
+      </div>
+  )
+}
+
+/*
+const { setAuth } = useContext(AuthContext);
     const userRef = useRef();
     const errRef = useRef();
     const [userName, setUserName] = useState('');
@@ -51,17 +87,4 @@ export const Login = (props) => {
           errRef.current.focus();
         }
       };
-
-    return (
-        <div className="form">
-            <h2>ready to grind? log in.</h2>
-            <div> {!success && <>ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive" {errMsg}</>}</div>
-            <form className="login-form" onSubmit={handleSubmit}>
-            <input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" id="username" name="username" ref={userRef}/>
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" id="password" name="password" />
-            <button type="submit" onClick={() => props.onFormSwitch('mainpage')}>log in</button>
-            </form>
-            <button className='link-button' onClick={() => props.onFormSwitch('register')}>create account</button>
-        </div>
-    )
-}
+      */

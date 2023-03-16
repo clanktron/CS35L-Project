@@ -3,6 +3,12 @@ cockroachdb/
 cockroach-data/
 roachdata/
 
+<<<<<<< HEAD
+# build results
+build/
+
+=======
+>>>>>>> eddf75e (Update implementation of log in authentication)
 # macos clutter
 *.DS_Store
 
