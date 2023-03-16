@@ -2,6 +2,7 @@ import './App.css';
 import React, {useState} from 'react';
 import {Login} from "./Login";
 import {Register} from "./Register";
+import {Mainpage} from "./Mainpage";
 
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
   return (
     <div className="App">
       {
-      currentForm === 'login' ? <Login onFormSwitch={toggleForm}/> : <Register onFormSwitch={toggleForm}/>
+      currentForm === 'login' ? <Login onFormSwitch={toggleForm}/> : ( currentForm === 'register' ? <Register onFormSwitch={toggleForm}/> : <Mainpage onFormSwitch={toggleForm}/>)
       }
     </div>
   );
