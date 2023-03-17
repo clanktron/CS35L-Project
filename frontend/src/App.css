@@ -61,10 +61,10 @@ button {
   text-decoration: underline;
 }
 
-.error {
-  background-color: lightpink;
-  color: firebrick;
-  font-weight: bold;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+#error-msg {
+  width: 100%;
+  text-align: center;
+  font-size: 12.5px;
+  color: #43e2cf;
+  opacity: 0;
 }
