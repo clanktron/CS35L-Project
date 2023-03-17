@@ -36,9 +36,15 @@ const getNotes = async () => {
         'Content-type': 'application/json',
      },
   })
-      .then(response => { return response.json();})
-      .then(responseData => {console.log(responseData); return responseData;})
-      .then(response => {updateItems((response));})
+  .then((response) => response.text())
+  .then((text) => {
+   console.log((text))
+   console.log(text.search('"Id":'))
+   console.log(text[7])
+})
+      // .then(response => { return response.json();})
+      // .then(responseData => {console.log(responseData); return responseData;})
+      // .then(response => {updateItems((response));})
       .catch(err => console.error(err));
 };
 

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Bar_RemainderList from './remainderlist';
+import { parse, stringify } from 'lossless-json';
 
 //create a list remote at the beginning (if needed)
 const Bar_create_list = async () => {
@@ -36,6 +37,7 @@ const Bar_getNotes = async () => {
         'Content-type': 'application/json',
      },
   })
+  
       .then(response => { return response.json();})
       .then(responseData => {console.log(responseData); return responseData;})
       .then(response => {updateItems((response));})
@@ -57,7 +59,6 @@ const Bar_getNotes = async () => {
        }),
     })
        .then((data) => console.log(data));
-
     Bar_getNotes();
   };
 
@@ -71,7 +72,8 @@ const Bar_getNotes = async () => {
        .then((data) => console.log(`${list_path}/note/${number}`));
      Bar_getNotes();
   };
-
+  console.log(stringify(parse()))
+ 
 
 
 //get the Note once to start

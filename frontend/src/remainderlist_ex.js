@@ -34,6 +34,7 @@ function RemainderList(props) {
   const { items, title, addNewItem, deleteItem} = props;
 
   const count = items.length;
+  console.log(Object.keys(items));
 
   return (
     <div className="remainderlist">
