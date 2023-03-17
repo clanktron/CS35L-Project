@@ -1,12 +1,23 @@
-# CS35L Final Project
+# CS35L Final Project : Jot
 
-An overengineered to-do app.
+an over-engineered to-do app.
 
 Tech Stack:
 - Frontend: React
 - Backend: Go, CockroachDB
 
 ## Development Setup:
+
+For backend development:
+
+Inside the backend directory theres a /dev folder, this contains a hot reload script (since its not built in to golang) that can help with development speed.
+
+To build the container for production simply run:
+
+```
+./package/build.sh
+
+```
 
 For Frontend Development:
 
