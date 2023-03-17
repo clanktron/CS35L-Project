@@ -35,7 +35,7 @@ These processes will both output to the terminal while they run, so if you need 
 
 Now Install [Insomnia](https://insomnia.rest/download)
 
-You can now import the json file I sent in the discord chat and read the documentation on the different api endpoints. If you follow the imported document from
+You can now import the json file found in the info directory. If you follow the imported document from
 top to bottom it should be relatively self explanatory. Insomnia also supports generating code corresponding to the query so that might be useful.
 
 At this point you can start up your react code like usual and query the data how you like. Use the urls from the insomnia document but just know the backend is 
