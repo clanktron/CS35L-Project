@@ -33,7 +33,7 @@ func enableCors(w http.ResponseWriter) {
 	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Accept-Charset, Accept-Language, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization, Content-Length, Content-Type, Cookie, Date, Forwarded, Origin, User-Agent")
 	(w).Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	(w).Header().Set("Access-Control-Allow-Credentials", "true")
-	(w).Header().Set("Access-Control-Allow-Methods", "*")
+	(w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	(w).Header().Set("Vary", "Origin")
 	(w).Header().Set("Vary", "Access-Control-Request-Method")
 	(w).Header().Set("Vary", "Access-Control-Request-Headers")
