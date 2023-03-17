@@ -1,0 +1,10 @@
+# https://kubernetes.io/docs/concepts/configuration/configmap/
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: notes-backend
+  namespace: jot
+data:
+  DBURL: "jot-db-public:26257"
+---
+

@@ -1,0 +1,21 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: notes-backend
+  namespace: jot
+  annotations:
+    kubernetes.io/ingress.class: traefik-crd-external
+spec:
+  entryPoints:
+    - notesapi
+  routes:
+  - match: Host(`jot.claytonc.dev`)
+    kind: Rule
+    services:
+    - name: notes-backend
+      port: 4000
+    middlewares: 
+      - name: jot-strip
+  tls:
+    secretName: jot-tls
