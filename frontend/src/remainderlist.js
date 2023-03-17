@@ -33,7 +33,7 @@ function RemainderList(props) {
   
   const { items, title, addNewItem, deleteItem} = props;
 
-  const count = items.length;
+  const count = items?.length;
 
   return (
     <div className="remainderlist">
@@ -45,7 +45,7 @@ function RemainderList(props) {
 
         <ul className="list-group list-group-flush">
 
-          {Object.keys(items).map((item,i) => (
+          {items && Object.keys(items).map((item,i) => (
               <li key={i} className="list-group-item">
 
                   <div>
@@ -55,7 +55,7 @@ function RemainderList(props) {
                   </div>
 
                   <div>
-                  <button className="Deletebutton" onClick={()=>deleteItem(items[item].Id)}>
+                  <button className="Deletebutton" onClick={()=>deleteItem(items[item].Id.value)}>
                     Finish!
                   </button>
                   </div>

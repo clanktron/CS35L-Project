@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import {parse, stringify} from 'lossless-json'
 import RemainderList from './remainderlist';
 
 //create a list remote at the beginning (if needed)
@@ -36,8 +37,8 @@ const getNotes = async () => {
         'Content-type': 'application/json',
      },
   })
-      .then(response => { return response.json();})
-      .then(responseData => {console.log(responseData); return responseData;})
+      .then(response => { return response.text();})
+      .then(responseData => {console.log(parse(responseData)); return parse(responseData);})
       .then(response => {updateItems((response));})
       .catch(err => console.error(err));
 };
@@ -63,22 +64,22 @@ const getNotes = async () => {
 
 
 //delete item remotely
-  const deleteitem = async (number) => {
-    await fetch('http://', {
+  const deleteitem = async(number)=> {
+    await fetch(`${list_path}/note/${number}`, {
        method: 'DELETE',
+       mode: 'cors',
+       credentials: 'include',
        headers: {'Content-type': 'application/json'}
     })
     .then((res) => console.log(`${list_path}/note/${number}`));
-
      getNotes();
   };
-
-
 
 //get the Note once to start
   useEffect(() => {
    additem("sample todo");
    },[])
+
   
   return (
     <div className="container">
