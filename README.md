@@ -16,7 +16,6 @@ To build the container for production simply run:
 
 ```
 ./package/build.sh
-
 ```
 
 For Frontend Development:
