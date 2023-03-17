@@ -45,15 +45,15 @@ function RemainderList(props) {
 
         <ul className="list-group list-group-flush">
 
-          {items.map(item => (
-              <li key={item.id} className="list-group-item">
+          {Object.keys(items).map((item,i) => (
+              <li key={i} className="list-group-item">
                   <div>
-                  <label className="Remaindertext" htmlFor={`remainder-item-check-${item.id}`}>
-                    {item.text}
+                  <label className="Remaindertext" htmlFor={`remainder-item-check-${item.Id}`}>
+                    {items[item].Content}
                   </label>
                   </div>
                   <div>
-                  <input className="Checkbox" type="checkbox" value="" id={`remainder-item-check-${item.id}`} />
+                  <input className="Checkbox" type="checkbox" value="" id={`remainder-item-check-${item.Id}`} />
                   </div>
               </li>
             ))}
