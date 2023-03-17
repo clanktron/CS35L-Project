@@ -61,3 +61,10 @@ button {
   text-decoration: underline;
 }
 
+.error {
+  background-color: lightpink;
+  color: firebrick;
+  font-weight: bold;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
