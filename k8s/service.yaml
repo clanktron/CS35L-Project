@@ -1,0 +1,16 @@
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-backend
+  namespace: jot
+spec:
+  selector:
+    app: notes-backend
+  type: ClusterIP
+  ports:
+  - name: notes-backend
+    protocol: TCP
+    port: 4000
+    targetPort: 4000
+---
