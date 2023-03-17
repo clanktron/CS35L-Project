@@ -123,6 +123,7 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			SameSite: http.SameSiteNoneMode,
 		}
 		http.SetCookie(w, &ck)
+		w.Write([]byte(fmt.Sprintf("created user %s", newuser.Username)))
 
 		return
 	case http.MethodDelete:
