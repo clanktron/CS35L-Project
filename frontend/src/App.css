@@ -18,11 +18,16 @@
   flex-direction: column;
 }
 
+.register-form {
+  padding: 2rem;
+}
+
 .form {
   padding: 5rem;
   border: 1px solid white;
   border-radius: 10px;
   margin: 0.5rem;
+  background-color: black;
 }
 
 label {
@@ -61,10 +66,216 @@ button {
   text-decoration: underline;
 }
 
-.err-msg {
+#error-msg {
   width: 100%;
   text-align: center;
   font-size: 12.5px;
   color: #43e2cf;
-  opacity: 1;
+  opacity: 0;
+}
+
+
+.error {
+  background-color: lightpink;
+  color: firebrick;
+  font-weight: bold;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+
+.remainderlist {
+  background-color: black;
+  padding: 20px 20px 10px 20px;
+  width: 700px;
+  margin: 30px auto;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  position: relative;
+}
+
+.remainderlist h1 {
+  margin: 10px 20px;
+  padding-bottom: 20px;
+  text-align: left;
+  color: white;
+}
+
+
+.remainder-footer {
+  border-top: 1px solid #3f3e3e;
+  background-color: #000000;
+  margin: 20px -20px -10px -20px;
+  padding: 10px 38px;
+}
+
+.Remaindertext {
+  line-height: 20px;
+}
+
+.list-group-flush> .list-group-item {
+  padding: 8px 1px;
+}
+
+.InputBar{
+  /* color: #074107; */
+  color: white;
+  padding: 15px;
+  margin: -5px 0px -0px 0px;
+  width: 659px;
+  padding-left: 10px;
+}
+
+.list-group-item{
+  list-style-type: none;
+  display: flex;
+  justify-content: space-between;
+}
+
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    color: #fff;
+}
+
+body {
+    min-height: 100vh;
+    background-color: dodgerblue;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; 
+  padding: 1rem 0.5rem;
+}
+
+section {
+    width: 100%;
+    max-width: 600px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 1rem;
+    background-color: rgba(0,0,0,0.4);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    flex-grow: 1;
+    padding-bottom: 1rem;
+}
+
+a, a:visited {
+    color: #fff;
+}
+
+input[type="text"],
+input[type="password"],
+button,
+textarea {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+}
+
+label,
+button {
+  margin-top: 1rem;
+}
+
+button {
+  padding: 0.5rem;
+}
+
+li {
+    list-style-type: none;
+}
+
+.instructions {
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+    /* background: #000; */
+    background: lightpink;
+    /* color: #fff; */
+    color: black;
+    padding: 0.25rem;
+    position: relative;
+    bottom: -10px;
+}
+
+.instructions > svg {
+    margin-right: 0.25rem;
+}
+
+.offscreen {
+    position: absolute;
+    left: -9999px;
+}
+
+.hide {
+    display: none;
+}
+
+.valid {
+    color: limegreen;
+    margin-left: 0.25rem;
+}
+
+.invalid {
+    color: red;
+    margin-left: 0.25rem;
+}
+
+.errmsg {
+    background-color: lightpink;
+    color: firebrick;
+    font-weight: bold;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.line {
+    display: inline-block;
+}
+
+.flexGrow {
+    flex-grow: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+
+.persistCheck {
+    font-size: 0.75rem;
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+.persistCheck label {
+    margin: 0;
+}
+
+[type="checkbox"] {
+    height: 20px;
+    width: 20px;
+    margin: 0 5px 2px 2px;
 }

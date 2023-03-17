@@ -135,7 +135,7 @@ export const Register = (props) => {
                 //     </p>
                 // </section>
             ) : (
-                <section>
+                <section className = 'form'>
                     <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
                     <h1>Register</h1>
                     <form onSubmit={handleSubmit}>

@@ -29,10 +29,16 @@ const ITEMS_INITIAL_STATE = [];
 
 export const Mainpage = () => {
   const [if_exist, set_if_exist] = useState('true');
-  if(if_exist){
-    create_list();
-    () => set_if_exist('false');
-}
+  
+    useState(()=>{
+        if(if_exist){
+            create_list();
+        }
+        set_if_exist('false');
+    },[])
+
+    
+
   
   let list_path = 'http://localhost:4000/list/Test_list'
   let title = 'Remainder';
@@ -87,9 +93,9 @@ const getNotes = async () => {
   };
 
 //get the Note once to start
-//   useEffect(() => {
-//    additem("sample todo");
-//    },[])
+  useEffect(() => {
+   getNotes();
+   },[])
 
   
   return (
