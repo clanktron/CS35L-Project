@@ -1,30 +1,30 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import RemainderList from './remainderlist';
 
+  //create a list remote at the beginning (if needed)
+const create_list = async () => {
+   await fetch('http://localhost:4000/list/', {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+         'Content-type': 'application/json; charset=UTF-8',
+      },
+      body: JSON.stringify({
+         name: "Test_list"
+      }),
+   })
+      .then((data) => console.log(data));
+ };
+
+//create_list();
+
 const ITEMS_INITIAL_STATE = [];
 
 function App() {
   let list_path = 'http://localhost:4000/list/Test_list'
   let title = 'Remainder';
   const [items, updateItems] = useState(ITEMS_INITIAL_STATE);
-
-  //create a list remote at the beginning (if needed)
-  const create_list = async () => {
-    await fetch('http://localhost:4000/list/', {
-       method: 'POST',
-       mode: 'cors',
-       credentials: 'include',
-       headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-       },
-       body: JSON.stringify({
-          name: "Test_list"
-       }),
-    })
-       .then((data) => console.log(data));
-  };
-
-  create_list();
 
 //get a notes from the remote list
 const getNotes = async () => {
@@ -61,6 +61,7 @@ const getNotes = async () => {
     getNotes();
   };
 
+  
 //delete item remotely
   const deleteitem = async (number) => {
     await fetch(`${list_path}/note/${number}`, {
@@ -71,18 +72,17 @@ const getNotes = async () => {
           'Content-type': 'application/json; charset=UTF-8',
        },
     })
-       .then((data) => console.log(data));
+       .then((data) => console.log(`${list_path}/note/${number}`));
      getNotes();
   };
 
-  
+
 
 //get the Note once to start
   useEffect(() => {
-    getNotes();},[])
-  console.log(Object.keys(items))
+   additem("sample todo");
+   },[])
   
-
   return (
     <div className="container">
       <div className="row">
