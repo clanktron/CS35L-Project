@@ -3,7 +3,7 @@ body {
   color: rgb(0, 17, 3);
 }
 
-.Bar_remainderlist {
+.remainderlist {
   background-color: #FFF;
   padding: 0px 50px 200px 0px;
   width: 300px;
@@ -15,7 +15,7 @@ body {
   height: 100vh;
 }
 
-.Bar_remainderlist h1 {
+.remainderlist h1 {
   margin: 10px 20px;
   padding-bottom: 20px;
   text-align: left;
@@ -23,7 +23,7 @@ body {
 }
 
 
-.Bar_remainder-footer {
+.remainder-footer {
   border-top: 1px solid #EEE;
   background-color: #dd0ca9;
   margin: 0px -50px -20px -0px;
@@ -31,11 +31,11 @@ body {
 }
 
 
-.Bar_list-group-flush> .list-group-item {
+.list-group-flush> .list-group-item {
   padding: 8px 0px;
 }
 
-.Bar_List_InputBar{
+.InputBar{
   color: #074107;
   padding: 25px;
   margin: -5px -80px -0px 20px;
@@ -43,7 +43,7 @@ body {
   padding-left: 50px;
 }
 
-.Bar_list-group-item{
+.list-group-item{
   list-style-type: none;
   display: flex;
   justify-content: space-between;

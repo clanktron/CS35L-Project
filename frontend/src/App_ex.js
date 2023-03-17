@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import Bar_RemainderList from './remainderlist';
+import RemainderList from './remainderlist_ex';
 
-//create a list remote at the beginning (if needed)
-const Bar_create_list = async () => {
+  //create a list remote at the beginning (if needed)
+const create_list = async () => {
    await fetch('http://localhost:4000/list/', {
       method: 'POST',
       mode: 'cors',
@@ -17,17 +17,17 @@ const Bar_create_list = async () => {
       .then((data) => console.log(data));
  };
 
-//Bar_create_list();
+//create_list();
 
 const ITEMS_INITIAL_STATE = [];
 
-function Bar_App() {
+function App() {
   let list_path = 'http://localhost:4000/list/Test_list'
   let title = 'To-Dos';
   const [items, updateItems] = useState(ITEMS_INITIAL_STATE);
 
 //get a notes from the remote list
-const Bar_getNotes = async () => {
+const getNotes = async () => {
   await fetch(`${list_path}/note`, {
      method: 'GET',
      mode: 'cors',
@@ -44,7 +44,7 @@ const Bar_getNotes = async () => {
 
 
 //add new item remotely
-  const Bar_additem = async (text) => {
+  const additem = async (text) => {
     await fetch('http://localhost:4000/list/Test_list/note', {
        method: 'POST',
        mode: 'cors',
@@ -58,36 +58,39 @@ const Bar_getNotes = async () => {
     })
        .then((data) => console.log(data));
 
-    Bar_getNotes();
+    getNotes();
   };
 
-
+  
 //delete item remotely
-  const Bar_deleteitem = async (number) => {
+  const deleteitem = async (number) => {
     await fetch(`${list_path}/note/${number}`, {
        method: 'DELETE',
-       headers: {'Content-type': 'application/json'}
+       mode: 'cors',
+       credentials: 'include',
+       headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+       },
     })
        .then((data) => console.log(`${list_path}/note/${number}`));
-     Bar_getNotes();
+     getNotes();
   };
 
 
 
 //get the Note once to start
   useEffect(() => {
-   Bar_additem("sample todo");
+   additem("sample todo");
    },[])
   
   return (
-    <div className="Bar_container">
-      <div className="Bar_row">
-      <Bar_RemainderList title={title} items={items} addNewItem={Bar_additem} deleteItem={Bar_deleteitem}/> 
+    <div className="container">
+      <div className="row">
+      <RemainderList title={title} items={items} addNewItem={additem} deleteItem={deleteitem}/> 
       </div>
     </div>
   );
 }
 
 
-export default Bar_App;
-
+export default App;
