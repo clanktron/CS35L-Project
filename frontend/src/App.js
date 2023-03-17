@@ -38,7 +38,7 @@ const getNotes = async () => {
   })
       .then(response => { return response.json();})
       .then(responseData => {console.log(responseData); return responseData;})
-      .then(response => {updateItems((response))})
+      .then(response => {updateItems((response));})
       .catch(err => console.error(err));
 };
 
