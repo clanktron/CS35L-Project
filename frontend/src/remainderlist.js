@@ -31,7 +31,7 @@ function InputBox(props) {
 
 function RemainderList(props) {
   
-  const { items, title, addNewItem } = props;
+  const { items, title, addNewItem, deleteItem} = props;
 
   const count = items.length;
 
@@ -47,14 +47,19 @@ function RemainderList(props) {
 
           {Object.keys(items).map((item,i) => (
               <li key={i} className="list-group-item">
+
                   <div>
-                  <label className="Remaindertext" htmlFor={`remainder-item-check-${item.Id}`}>
+                  <label className="Remaindertext" htmlFor={`remainder-item-check-${i}`}>
                     {items[item].Content}
                   </label>
                   </div>
+
                   <div>
-                  <input className="Checkbox" type="checkbox" value="" id={`remainder-item-check-${item.Id}`} />
+                  <button className="Deletebutton" onClick={()=>deleteItem(items[item].Id)}>
+                    Finish!
+                  </button>
                   </div>
+
               </li>
             ))}
 

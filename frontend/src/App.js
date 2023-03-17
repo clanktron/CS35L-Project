@@ -4,8 +4,8 @@ import RemainderList from './remainderlist';
 const ITEMS_INITIAL_STATE = [];
 
 function App() {
+  let list_path = 'http://localhost:4000/list/Test_list'
   let title = 'Remainder';
-  let json = [];
   const [items, updateItems] = useState(ITEMS_INITIAL_STATE);
 
   //create a list remote at the beginning (if needed)
@@ -24,9 +24,11 @@ function App() {
        .then((data) => console.log(data));
   };
 
+  create_list();
+
 //get a notes from the remote list
 const getNotes = async () => {
-  await fetch('http://localhost:4000/list/Test_list/note', {
+  await fetch(`${list_path}/note`, {
      method: 'GET',
      mode: 'cors',
      credentials: 'include',
@@ -55,11 +57,13 @@ const getNotes = async () => {
        }),
     })
        .then((data) => console.log(data));
+
+    getNotes();
   };
 
 //delete item remotely
-  const deleteitem = async () => {
-    await fetch('http://localhost:4000/list/Test_list/note', {
+  const deleteitem = async (number) => {
+    await fetch(`${list_path}/note/${number}`, {
        method: 'DELETE',
        mode: 'cors',
        credentials: 'include',
@@ -68,6 +72,7 @@ const getNotes = async () => {
        },
     })
        .then((data) => console.log(data));
+     getNotes();
   };
 
   
@@ -81,7 +86,7 @@ const getNotes = async () => {
   return (
     <div className="container">
       <div className="row">
-      <RemainderList title={title} items={items} addNewItem={additem}/> 
+      <RemainderList title={title} items={items} addNewItem={additem} deleteItem={deleteitem}/> 
       </div>
     </div>
   );
