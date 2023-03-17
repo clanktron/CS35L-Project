@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import RemainderList from './remainderlist';
 
-  //create a list remote at the beginning (if needed)
+//create a list remote at the beginning (if needed)
 const create_list = async () => {
    await fetch('http://localhost:4000/list/', {
       method: 'POST',
@@ -21,7 +21,7 @@ const create_list = async () => {
 
 const ITEMS_INITIAL_STATE = [];
 
-function App() {
+function To_do_table() {
   let list_path = 'http://localhost:4000/list/Test_list'
   let title = 'Remainder';
   const [items, updateItems] = useState(ITEMS_INITIAL_STATE);
@@ -61,18 +61,15 @@ const getNotes = async () => {
     getNotes();
   };
 
-  
+
 //delete item remotely
   const deleteitem = async (number) => {
-    await fetch(`${list_path}/note/${number}`, {
+    await fetch('http://', {
        method: 'DELETE',
-       mode: 'cors',
-       credentials: 'include',
-       headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-       },
+       headers: {'Content-type': 'application/json'}
     })
-       .then((data) => console.log(`${list_path}/note/${number}`));
+    .then((res) => console.log(`${list_path}/note/${number}`));
+
      getNotes();
   };
 
@@ -93,4 +90,4 @@ const getNotes = async () => {
 }
 
 
-export default App;
+export default To_do_table;
