@@ -13,6 +13,22 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type Response struct {
+	Message string
+}
+
+func respondFailure(w http.ResponseWriter) {
+	var success Response
+	success.Message = "FAILURE"
+	renderJSON(w, success)
+}
+
+func respondSuccess(w http.ResponseWriter) {
+	var success Response
+	success.Message = "SUCCESS"
+	renderJSON(w, success)
+}
+
 func enableCors(w http.ResponseWriter) {
 	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Accept-Charset, Accept-Language, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization, Content-Length, Content-Type, Cookie, Date, Forwarded, Origin, User-Agent")
 	(w).Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
