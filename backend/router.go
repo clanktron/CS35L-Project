@@ -123,7 +123,7 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			SameSite: http.SameSiteNoneMode,
 		}
 		http.SetCookie(w, &ck)
-		w.Write([]byte(fmt.Sprintf("created user %s", newuser.Username)))
+		respondSuccess(w)
 
 		return
 	case http.MethodDelete:
@@ -155,7 +155,7 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(fmt.Sprintf("Failed to delete user with id %d", userid)))
 			return
 		}
-		w.Write([]byte(fmt.Sprintf("Successfully deleted user with id %d", userid)))
+		respondSuccess(w)
 		return
 	case http.MethodOptions:
 		return
@@ -219,7 +219,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &ck)
 
 		log.Printf("%s logged in successfully", login.Username)
-		w.Write([]byte(fmt.Sprintf("%s logged in successfully", login.Username)))
+		respondSuccess(w)
 
 		return
 	case http.MethodOptions:
@@ -294,7 +294,7 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			log.Printf("Added \"%s\" to lists!", newlist.Name)
-			w.Write([]byte(fmt.Sprintf("Added \"%s\" to lists!", newlist.Name)))
+			respondSuccess(w)
 
 			return
 		case http.MethodOptions:
@@ -334,7 +334,7 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("Updated list \"%s\"\n", updatedlist.Name)
-		w.Write([]byte(fmt.Sprintf("Updated list \"%s\"!", updatedlist.Name)))
+		respondSuccess(w)
 
 		return
 	case http.MethodDelete:
@@ -346,7 +346,7 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Print("Failed to delete list\n")
 		}
 		log.Printf("Deleted list %s\n", list.Name)
-		w.Write([]byte(fmt.Sprintf("Deleted list \"%s\"!", list.Name)))
+		respondSuccess(w)
 
 		return
 	case http.MethodOptions:
@@ -436,7 +436,7 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 					return
 				}
 				log.Printf("Added note to list with id %d", newnote.Listid)
-				w.Write([]byte(fmt.Sprintf("Added note to list with id %d", newnote.Listid)))
+				respondSuccess(w)
 
 				return
 			case http.MethodOptions:
@@ -486,7 +486,7 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 				return
 			}
 			log.Printf("Updated note with content \"%s\"", updatednote.Content)
-			w.Write([]byte(fmt.Sprintf("Note with id %d has been updated with content \"%s\"", noteid, updatednote.Content)))
+			respondSuccess(w)
 
 			return
 		case http.MethodDelete:
@@ -497,7 +497,7 @@ func (h *NoteHandler) Handler(listname string) http.Handler {
 				return
 			}
 			log.Printf("Note with id %d has been deleted", noteid)
-			w.Write([]byte(fmt.Sprintf("Note with id %d has been deleted", noteid)))
+			respondSuccess(w)
 
 			return
 		case http.MethodOptions:
