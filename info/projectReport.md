@@ -2,7 +2,7 @@
 geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 ---
 
-# CS35L Project Proposal
+# CS35L Project Report
 
 ## Team Members and Details:
 
@@ -35,24 +35,22 @@ geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 
 ### Software Architecture:
 
-##### Frontend (ReactJS)
+#### Frontend (ReactJS)
 
-Marlee Kitchen:
--Login Page:
+- Login Page (Marlee Kitchen):
    - functionality implemented primarily using the imported useRef, useState, and useEffect from React
    - display of the page varied upon submission via clicking the "log in" button, hitting "enter" on the keyboard, or clicking the "create account" button
    - the functionality of the "log in" button and hitting "enter" on the keyboard were synonymous and would either switch the page to the main page by passing the props to the onFormSwitch function if the entered username and password corresponded to a matching pair stored in the backend database or would stay on the login page with an added "incorrect username or password" error message displayed if no such pair exists
    - clicking the "create account" button switches the displayed page from the login page to the register page, also, via the onFormSwitch function that React offers
 
-Daniel Wang:
-- Create new user page
+- Create new user page (Daniel Wang):
     - Input username and password to create new user
     - Set limitation for not allowing special character in username
     - Set requirement for needing to include special character in password
     - Require the password to entered twice to comfirm the password
     - Check for reponse from backend whether the username has been used
 
-##### Backend (Golang)
+#### Backend (Golang) (Clayton)
 
 - communicates with CockroachDB
 - serves a REST API for the Frontend to consume
@@ -79,7 +77,7 @@ Daniel Wang:
         - PUT: update note data
         - DELETE: delete note
 
-#### Data Persistence
+#### Data Persistence (Clayton)
 
 - CockroachDB
     - Postgres compatible DB
