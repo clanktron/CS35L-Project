@@ -37,6 +37,13 @@ geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 
 ##### Frontend (ReactJS)
 
+- Create new user page
+    - Input username and password to create new user
+    - Set limitation for not allowing special character in username
+    - Set requirement for needing to include special character in password
+    - Require the password to entered twice to comfirm the password
+    - Check for reponse from backend whether the username has been used
+
 
 ##### Backend (Golang)
 
