@@ -6,7 +6,7 @@ output: pdf_document
 # Git Commit History
 
 >Note: The formatting of this document is a little weird since markdown to pdf conversion is a little wonky without custom css. 
-If you want a better view of this file go to the repo https://github.com/clanktron/CS35L-Project/info/githistory.md. It matches the images
+If you want a better view of this file go to the repo [https://github.com/clanktron/CS35L-Project/info/githistory.md](https://github.com/clanktron/CS35L-Project/blob/main/info/githistory.md). It matches the images
 up much better so I'd recommend it.
 
 Our general approach was to develop features in feature branches and rapidly merge to main once the designated task had been completed.
