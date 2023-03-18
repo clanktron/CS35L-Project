@@ -37,6 +37,11 @@ geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 
 ##### Frontend (ReactJS)
 
+-Login Page:
+   - functionality implemented primarily using the imported useRef, useState, and useEffect from React
+   - display of the page varied upon submission via clicking the "log in" button, hitting "enter" on the keyboard, or clicking the "create account" button
+   - the functionality of the "log in" button and hitting "enter" on the keyboard were synonymous and would either switch the page to the main page by passing the props to the onFormSwitch function if the entered username and password corresponded to a matching pair stored in the backend database or would stay on the login page with an added "incorrect username or password" error message displayed if no such pair exists
+   - clicking the "create account" button switches the displayed page from the login page to the register page, also, via the onFormSwitch function that React offers
 
 ##### Backend (Golang)
 
